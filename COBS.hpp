@@ -5,7 +5,7 @@
 
 std::vector<uint8_t> cobs_encode(const uint8_t* data, int length)
 {
-    if (data.empty()) return {};
+    if (length == 0) return {};
 
     std::vector<uint8_t> output;
     output.resize(length + length / 254 + 2); // This is the maximum size. Encoded data will be the originals size, include a start and end byte, and have +1 byte each time it goes over 254 without a zero in between
