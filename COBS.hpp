@@ -1,18 +1,22 @@
+#pragma once
+
 #include <cstdint>
 #include <vector>
 
-std::vector<uint8_t> cobs_encode(const std::vector<uint8_t>& data)
+std::vector<uint8_t> cobs_encode(const uint8_t* data, int length)
 {
+    if (data.empty()) return {};
+
     std::vector<uint8_t> output;
-    output.resize(data.size() + data.size() / 254 + 2); // This is the maximum size. Encoded data will be the originals size, include a start and end byte, and have +1 byte each time it goes over 254 without a zero in between
+    output.resize(length + length / 254 + 2); // This is the maximum size. Encoded data will be the originals size, include a start and end byte, and have +1 byte each time it goes over 254 without a zero in between
 
     int marker_index = 0; // Stores the index of where the marker will go
     int output_index = 1; // The current index to write normal bytes to, we skip 0 because a marker will go there
-    for (uint8_t byte : data)
+    for (int i = 0; i < length; i++)
     {
         // If there is a zero byte, then instead set the marker to the distance from the marker to the zero
         // The byte at this position won't be written until we find another zero, we go over 0xFF, or after the loop ends
-        if (byte == 0x00)
+        if (data[i] == 0x00)
         {
             output[marker_index] = output_index - marker_index;
             marker_index = output_index++;
@@ -23,11 +27,11 @@ std::vector<uint8_t> cobs_encode(const std::vector<uint8_t>& data)
         {
             output[marker_index] = 0xFF;
             marker_index = output_index++;
-            output[output_index++] = byte;
+            output[output_index++] = data[i];
         }
         else
         {
-            output[output_index++] = byte;
+            output[output_index++] = data[i];
         }
     }
     output[marker_index] = output_index - marker_index;
@@ -40,6 +44,8 @@ std::vector<uint8_t> cobs_encode(const std::vector<uint8_t>& data)
 
 std::vector<uint8_t> cobs_decode(const std::vector<uint8_t>& data)
 {
+    if (data.empty()) return {};
+
     std::vector<uint8_t> output;
     output.resize(data.size() - 2);
 
