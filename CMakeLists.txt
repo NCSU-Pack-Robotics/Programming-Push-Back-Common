@@ -5,4 +5,7 @@ project(Push-Back-Common)
 
 add_executable(Push-Back-Common COBS.hpp
         main.cpp
-        COBS.cpp)
+        SerialHandler.cpp
+        SerialHandler.hpp
+        COBS.cpp
+        PacketId.hpp)
