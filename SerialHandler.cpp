@@ -17,12 +17,6 @@ SerialHandler::SerialHandler(DeviceType device_type) : device_type(device_type)
         }
         // TODO: Better error handling here, maybe continuously try to connect until it works
     }
-    else if (device_type == DeviceType::BRAIN)
-    {
-        // Turn off buffering
-        setvbuf(stdout, NULL, _IONBF, 0);
-        setvbuf(stdin, NULL, _IONBF, 0);
-    }
 }
 
 SerialHandler::~SerialHandler()
@@ -47,7 +41,7 @@ void SerialHandler::receive()
         }
         else if (this->device_type == DeviceType::BRAIN)
         {
-            num_read = fread(&in, 1, 1, stdin);
+            num_read = read(STDIN_FILENO, &in, 1);
         }
         if (num_read != 1) // Error occurred or EOF
         {

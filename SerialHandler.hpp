@@ -48,8 +48,7 @@ public:
 
         if (this->device_type == DeviceType::BRAIN)
         {
-            fwrite(encoded->data(), encoded->size(), sizeof(uint8_t), stdout);
-            fflush(stdout); // Important flush
+            write(STDOUT_FILENO, encoded->data(), encoded->size());
         }
         else if (this->device_type == DeviceType::PI)
         {
