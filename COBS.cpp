@@ -44,7 +44,7 @@ std::optional<std::vector<uint8_t>> cobs_decode(const std::vector<uint8_t>& data
     if (data.empty()) return std::nullopt;
 
     std::vector<uint8_t> output;
-    output.resize(data.size() - 2);
+    output.resize(data.size() - 1);
 
     int output_index = 0;
     int next_marker_index = data[0];

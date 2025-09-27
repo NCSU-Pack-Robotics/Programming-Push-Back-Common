@@ -34,6 +34,7 @@ SerialHandler::~SerialHandler()
 
 void SerialHandler::receive()
 {
+    if (fd == -1) return;
     std::vector<uint8_t> bytes;
     uint8_t in = ' ';
     while (in != '\0')
@@ -51,9 +52,10 @@ void SerialHandler::receive()
         {
             return;
         }
-
         bytes.push_back(in);
     }
+
+    bytes.pop_back();
 
     std::optional<std::vector<uint8_t>> decoded = cobs_decode(bytes);
     if (!decoded.has_value()) return; // If we fail to decode, ignore the packet
