@@ -6,10 +6,8 @@
 #include <fcntl.h>
 #include <vector>
 
-SerialHandler::SerialHandler(DeviceType device_type) : device_type(device_type)
-{
-    if (device_type == DeviceType::PI)
-    {
+SerialHandler::SerialHandler(DeviceType device_type) : device_type(device_type) {
+    if (device_type == DeviceType::PI) {
         // Open with read/write and O_NOCTTY is so we don't become the process's controlling terminal
         this->fd = open("/dev/ttyACM1", O_RDWR | O_NOCTTY);
         if (this->fd < 0) {
@@ -19,32 +17,26 @@ SerialHandler::SerialHandler(DeviceType device_type) : device_type(device_type)
     }
 }
 
-SerialHandler::~SerialHandler()
-{
-    if (this->fd != -1)
-    {
+SerialHandler::~SerialHandler() {
+    if (this->fd != -1) {
         close(fd);
     }
 }
 
-void SerialHandler::receive()
-{
+void SerialHandler::receive() {
     if (fd == -1) return;
     std::vector<uint8_t> bytes;
     uint8_t in = ' ';
-    while (in != '\0')
-    {
+    while (in != '\0') {
         int num_read;
-        if (this->device_type == DeviceType::PI)
-        {
+        if (this->device_type == DeviceType::PI) {
             num_read = read(this->fd, &in, 1);
         }
-        else if (this->device_type == DeviceType::BRAIN)
-        {
+        else if (this->device_type == DeviceType::BRAIN) {
             num_read = read(STDIN_FILENO, &in, 1);
         }
-        if (num_read != 1) // Error occurred or EOF
-        {
+        if (num_read != 1) {
+            /* Error occurred or EOF */
             return;
         }
         bytes.push_back(in);
@@ -59,9 +51,11 @@ void SerialHandler::receive()
     uint32_t packet_hash;
 
     memcpy(&packet_id, decoded->data(), sizeof(uint32_t)); // Read the first 4 bytes into packet_id
-    memcpy(&packet_hash, decoded->data() + sizeof(uint32_t), sizeof(uint32_t)); // Read the next 4 bytes into packet_hash
+    memcpy(&packet_hash, decoded->data() + sizeof(uint32_t), sizeof(uint32_t));
+    // Read the next 4 bytes into packet_hash
 
-    uint32_t actual_hash = SerialHandler::get_struct_hash(decoded->data() + 2 * sizeof(uint32_t), decoded->size() - 2 * sizeof(uint32_t));
+    uint32_t actual_hash = SerialHandler::get_struct_hash(decoded->data() + 2 * sizeof(uint32_t),
+                                                          decoded->size() - 2 * sizeof(uint32_t));
     if (actual_hash != packet_hash) return; // If the packet somehow got messed up, ignore it
 
     auto it = this->handlers.find(static_cast<PacketId>(packet_id));
@@ -71,11 +65,9 @@ void SerialHandler::receive()
 }
 
 
-uint32_t SerialHandler::get_struct_hash(const uint8_t* start, int length)
-{
+uint32_t SerialHandler::get_struct_hash(const uint8_t* start, int length) {
     uint32_t hash = 0;
-    for (int i = 0; i < length; i++)
-    {
+    for (int i = 0; i < length; i++) {
         hash ^= static_cast<uint32_t>(*(start + i)) << 5;
     }
 

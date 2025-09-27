@@ -12,22 +12,18 @@
 #include <unistd.h>
 
 
-
-enum class DeviceType
-{
+enum class DeviceType {
     BRAIN,
     PI
 };
 
-class SerialHandler
-{
+class SerialHandler {
 public:
     explicit SerialHandler(DeviceType device_type);
     ~SerialHandler();
 
     template <typename T>
-    void send(const T& packet)
-    {
+    void send(const T& packet) {
         auto it = structs_to_packet_ids.find(std::type_index(typeid(T)));
         if (it == structs_to_packet_ids.end()) return;
         int32_t packet_id = static_cast<uint32_t>(it->second);
@@ -46,12 +42,10 @@ public:
         std::optional<std::vector<uint8_t>> encoded = cobs_encode(data);
         if (!encoded.has_value()) return;
 
-        if (this->device_type == DeviceType::BRAIN)
-        {
+        if (this->device_type == DeviceType::BRAIN) {
             write(STDOUT_FILENO, encoded->data(), encoded->size());
         }
-        else if (this->device_type == DeviceType::PI)
-        {
+        else if (this->device_type == DeviceType::PI) {
             write(this->fd, encoded->data(), encoded->size());
         }
     }

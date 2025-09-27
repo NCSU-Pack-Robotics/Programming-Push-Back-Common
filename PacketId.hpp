@@ -1,6 +1,5 @@
 #pragma once
 
-enum class PacketId
-{
+enum class PacketId {
     Hello = 0
 };
