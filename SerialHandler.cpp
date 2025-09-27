@@ -10,6 +10,7 @@ SerialHandler::SerialHandler(DeviceType device_type) : device_type(device_type)
 {
     if (device_type == DeviceType::PI)
     {
+        // Open with read/write and O_NOCTTY is so we don't become the process's controlling terminal
         this->fd = open("/dev/ttyACM1", O_RDWR | O_NOCTTY);
         if (this->fd < 0) {
             perror("Error opening file: ");
@@ -55,7 +56,7 @@ void SerialHandler::receive()
         bytes.push_back(in);
     }
 
-    bytes.pop_back();
+    bytes.pop_back(); // Cobs does not decode the last 0x00 byte, it is only used in encoding so we have a delimiter
 
     std::optional<std::vector<uint8_t>> decoded = cobs_decode(bytes);
     if (!decoded.has_value()) return; // If we fail to decode, ignore the packet
