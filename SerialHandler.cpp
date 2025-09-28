@@ -1,11 +1,9 @@
 #include "SerialHandler.hpp"
 
-#include <array>
 #include <cmath>
 #include <cstring>
 #include <iostream>
 #include <fcntl.h>
-#include <optional>
 #include <unistd.h>
 #include <vector>
 
@@ -31,39 +29,6 @@ SerialHandler::~SerialHandler() {
         close(fd);
     }
 }
-
-template <typename T>
-void SerialHandler::send(const T& packet) {
-    const auto it = structs_to_packet_ids.find(std::type_index(typeid(T)));
-    if (it == structs_to_packet_ids.end()) return;
-
-    const auto packet_id = static_cast<uint32_t>(it->second);
-
-    // Create enough space to store 2, 4 byte values in the header: ID and hash, and the packet struct body
-    std::vector<uint8_t> data(2 * sizeof(uint32_t) + sizeof(packet));
-
-    // Copy ID into vector
-    memcpy(data.data(), &packet_id, sizeof(packet_id));
-
-    // Copy Hash into vector
-    const uint32_t hash = compute_hash(reinterpret_cast<const uint8_t*>(&packet), sizeof(packet));
-    memcpy(data.data() + sizeof(uint32_t), &hash, sizeof(hash));
-
-    // Write the struct body after the header bytes
-    memcpy(data.data() + 2 * sizeof(uint32_t), &packet, sizeof(packet));
-
-    // Frame the packet using COBS
-    const std::optional<std::vector<uint8_t>> encoded = cobs_encode(data);
-    if (!encoded.has_value()) return;
-
-    // Write the data to the serial connection
-    if (this->device_type == DeviceType::BRAIN) {
-        write(STDOUT_FILENO, encoded->data(), encoded->size());
-    } else if (this->device_type == DeviceType::PI) {
-        write(this->fd, encoded->data(), encoded->size());
-    }
-}
-
 
 void SerialHandler::receive() {
     if (fd == -1) return;
