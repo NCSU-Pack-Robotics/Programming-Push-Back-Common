@@ -5,7 +5,8 @@ std::optional<std::vector<uint8_t>> cobs_encode(const std::vector<uint8_t>& data
 
     std::vector<uint8_t> output;
     output.resize(data.size() + data.size() / 254 + 2);
-    // This is the maximum size. Encoded data will be the originals size, include a start and end byte, and have +1 byte each time it goes over 254 without a zero in between
+    /* This is the maximum size. Encoded data will be the originals size, include a start and end byte, and have +1
+     * byte each time it goes over 254 without a zero in between */
 
     int marker_index = 0; // Stores the index of where the marker will go
     int output_index = 1;
