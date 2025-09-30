@@ -5,9 +5,10 @@
 #include <iostream>
 #include <fcntl.h>
 #include <unistd.h>
-#include <vector>
 
-#include "COBS.hpp"
+#include "packet/types/encoder.hpp"
+#include "packet/types/optical.hpp"
+#include "PacketId.hpp"
 
 SerialHandler::SerialHandler(const DeviceType device_type) : device_type(device_type) {
     if (device_type == DeviceType::PI) {
@@ -30,60 +31,65 @@ SerialHandler::~SerialHandler() {
     }
 }
 
-void SerialHandler::receive() {
-    if (fd == -1) return;
+std::unique_ptr<Packet<std::any>> SerialHandler::receive() {
+    if (fd == -1) return nullptr;
 
-    uint8_t in = ' ';  // Current byte being read
-    std::vector<uint8_t> bytes;
+        uint8_t in = ' ';  // Current byte being read
+        std::vector<uint8_t> bytes;
 
-    // Read until we get a null byte (0x00)—end of packet
-    while (in != '\0') {
-        ssize_t num_read = 0;
-        if (this->device_type == DeviceType::PI) {
-            num_read = read(this->fd, &in, 1);
-        } else if (this->device_type == DeviceType::BRAIN) {
-            num_read = read(STDIN_FILENO, &in, 1);
+        // Read until we get a null byte (0x00)—end of packet
+        while (in != '\0') {
+            ssize_t num_read = 0;
+            if (this->device_type == DeviceType::PI) {
+                num_read = read(this->fd, &in, 1);
+            } else if (this->device_type == DeviceType::BRAIN) {
+                num_read = read(STDIN_FILENO, &in, 1);
+            }
+
+            if (num_read != 1) {
+                /* Error occurred or EOF */
+                return nullptr;
+            }
+
+            bytes.push_back(in);
         }
 
-        if (num_read != 1) {
-            /* Error occurred or EOF */
-            return;
+        // Cobs does not decode the last 0x00 byte, it is only used in encoding so we have a delimiter
+        bytes.pop_back();
+
+        const std::optional<std::vector<uint8_t>> decoded = cobs_decode(bytes);
+        if (!decoded.has_value()) return nullptr; // If we fail to decode, ignore the packet
+
+        // Decode the header
+        Header received_header{};
+        memcpy(&received_header, decoded->data(), sizeof(received_header));
+
+        std::unique_ptr<Packet<std::any>> received_packet;
+
+        // Using copilot for this. Not quite sure how it works. Alternate: use a macro
+        auto make_packet = [&]<typename T0>(const T0& data_type) {
+            using T = std::decay_t<T0>;
+            T data{};
+            memcpy(&data, decoded->data() + sizeof(received_header), sizeof(data));
+            return std::make_unique<Packet<std::any>>(received_header, data);
+        };
+
+        switch (received_header.packet_id) {
+        case PacketId::ENCODER:
+            received_packet = make_packet(EncoderData{});
+            break;
+        case PacketId::OPTICAL:
+            received_packet = make_packet(OpticalData{});
+            break;
+        default: // Unknown packet type
+            return nullptr;
         }
 
-        bytes.push_back(in);
-    }
+        // Ensure the packet is valid by checking the checksum
+        if (!received_packet->check_checksum()) {
+            // If the checksum is invalid, ignore the packet
+            return nullptr;
+        }
 
-    // Cobs does not decode the last 0x00 byte, it is only used in encoding so we have a delimiter
-    bytes.pop_back();
-
-    const std::optional<std::vector<uint8_t>> decoded = cobs_decode(bytes);
-    if (!decoded.has_value()) return; // If we fail to decode, ignore the packet
-
-    uint32_t packet_id;
-    uint32_t packet_hash;
-
-    // Yoink the ID and hash from the start of the decoded packet
-    memcpy(&packet_id, decoded->data(), sizeof(uint32_t));
-    memcpy(&packet_hash, decoded->data() + sizeof(uint32_t), sizeof(uint32_t));
-
-    // Ensure hash from packet matches the incoming data
-    const uint32_t actual_hash = compute_hash(decoded->data() + 2 * sizeof(uint32_t),
-                                                          decoded->size() - 2 * sizeof(uint32_t));
-    if (actual_hash != packet_hash) return;  // If not match, something was corrupted—drop the packet
-
-    const auto it = this->handlers.find(static_cast<PacketId>(packet_id));
-    if (it == this->handlers.end()) return; // If the packet ID is not in the decoding map, ignore it
-
-    // Grab the data from the packet TODO: how to handle the data
-    it->second(decoded->data() + 2 * sizeof(uint32_t));
-}
-
-
-uint32_t SerialHandler::compute_hash(const uint8_t* start, int length) {
-    uint32_t hash = 0;
-    for (int i = 0; i < length; i++) {
-        hash ^= static_cast<uint32_t>(*(start + i)) << 5;
-    }
-
-    return hash;
+        return received_packet;
 }

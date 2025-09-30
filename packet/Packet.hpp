@@ -1,0 +1,75 @@
+#pragma once
+
+#include "Header.hpp"
+#include "../utils.hpp"
+
+/**
+ * A generic, lightweight packet structure that contains a header and data of type T.
+ * @tparam T The type of data contained in the packet. Typically, this will be a type defined in packet/types.
+ */
+template <typename T>
+class Packet {
+public:
+    /** The header of the packet, containing metadata such as packet ID and checksum. */
+    Header header{};
+
+    /** The data contained in the packet. This is template because any type of data can be contained. */
+    T data;
+
+    /**
+     * Constructs a Packet completely.
+     * @param packet_id The ID of the packet type.
+     * @param data The data to be sent in the packet.
+     */
+    explicit Packet(const PacketId packet_id, const T data) : data(data) {
+        // Build the header
+        this->header.packet_id = packet_id;
+        this->header.checksum = compute_checksum();
+    }
+
+    /**
+     * Constructs a packet from received header and data
+     * @param header The received header of the packet
+     * @param data The received data of the packet
+     */
+    explicit Packet(const Header header, const T data) : header(header), data(data) {}
+
+    /**
+     * Checks if the checksum in the header matches the computed checksum of the packet.
+     * A useful method to call upon receipt of a packet to ensure data integrity.
+     * @return True if the checksums match, false otherwise.
+     */
+    bool check_checksum() {
+        const uint16_t computed_checksum = compute_checksum();
+        return computed_checksum == this->header.checksum;
+    }
+
+private:
+    /**
+     * Computes a one's complement checksum of the given data for integrity checking.
+     * Using one's complement to mimic IP. IP uses one's complement bc it's irrespective of edianness.
+     *
+     * https://datatracker.ietf.org/doc/html/rfc1071
+     * @return A 16 bit one's complement checksum of the entire packet
+     */
+    uint16_t compute_checksum() {
+        uint16_t checksum = 0;
+
+        // Compute checksum over header
+        Header header = this->header;  // This is a copy to avoid modifying the original
+        header.checksum = 0; // Zero out checksum field for calculation
+        const auto header_bytes = reinterpret_cast<const uint8_t*>(&this->header);
+        const uint16_t headerChecksum = compute_ones_sum(header_bytes, sizeof(Header));
+
+        // Compute checksum over data
+        const auto data_bytes = reinterpret_cast<const uint8_t*>(&this->data);
+        const uint16_t dataChecksum = compute_ones_sum(data_bytes, sizeof(T));
+
+        // Combine the two checksums
+        checksum = headerChecksum + dataChecksum;
+        checksum = (checksum & 0xFFFF) + (checksum >> 16); // Add carry if any
+
+        // Return the 1's complement of the sum
+        return ~checksum;
+    }
+};
