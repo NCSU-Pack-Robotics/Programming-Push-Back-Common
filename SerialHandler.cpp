@@ -6,8 +6,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "packet/types/encoder.hpp"
-#include "packet/types/optical.hpp"
+#include "Buffer.hpp"
 #include "PacketId.hpp"
 
 SerialHandler::SerialHandler(const DeviceType device_type) : device_type(device_type) {
@@ -31,8 +30,8 @@ SerialHandler::~SerialHandler() {
     }
 }
 
-std::unique_ptr<Packet<std::any>> SerialHandler::receive() {
-    if (fd == -1) return nullptr;
+void SerialHandler::receive() {
+    if (fd == -1) return;
 
         uint8_t in = ' ';  // Current byte being read
         std::vector<uint8_t> bytes;
@@ -48,7 +47,7 @@ std::unique_ptr<Packet<std::any>> SerialHandler::receive() {
 
             if (num_read != 1) {
                 /* Error occurred or EOF */
-                return nullptr;
+                return;
             }
 
             bytes.push_back(in);
@@ -58,38 +57,26 @@ std::unique_ptr<Packet<std::any>> SerialHandler::receive() {
         bytes.pop_back();
 
         const std::optional<std::vector<uint8_t>> decoded = cobs_decode(bytes);
-        if (!decoded.has_value()) return nullptr; // If we fail to decode, ignore the packet
+        if (!decoded.has_value()) return; // If we fail to decode, ignore the packet
 
         // Decode the header
         Header received_header{};
         memcpy(&received_header, decoded->data(), sizeof(received_header));
 
-        std::unique_ptr<Packet<std::any>> received_packet;
-
-        // Using copilot for this. Not quite sure how it works. Alternate: use a macro
-        auto make_packet = [&]<typename T0>(const T0& data_type) {
-            using T = std::decay_t<T0>;
-            T data{};
-            memcpy(&data, decoded->data() + sizeof(received_header), sizeof(data));
-            return std::make_unique<Packet<std::any>>(received_header, data);
-        };
-
-        switch (received_header.packet_id) {
-        case PacketId::ENCODER:
-            received_packet = make_packet(EncoderData{});
-            break;
-        case PacketId::OPTICAL:
-            received_packet = make_packet(OpticalData{});
-            break;
-        default: // Unknown packet type
-            return nullptr;
-        }
+        Packet received_packet{received_header, decoded.value()};
 
         // Ensure the packet is valid by checking the checksum
-        if (!received_packet->check_checksum()) {
+        if (!received_packet.check_checksum()) {
             // If the checksum is invalid, ignore the packet
-            return nullptr;
+            return;
         }
 
-        return received_packet;
+
+        this->buffers[received_header.packet_id].add(received_packet);
+
+}
+
+std::optional<Packet> SerialHandler::pop_latest(PacketId packet_id)
+{
+    return this->buffers[packet_id].pop_latest();
 }

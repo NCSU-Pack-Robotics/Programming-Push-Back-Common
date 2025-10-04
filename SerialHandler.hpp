@@ -10,6 +10,7 @@
 #include <typeindex>
 #include <unistd.h>
 
+#include "Buffer.hpp"
 #include "packet/Packet.hpp"
 
 
@@ -44,13 +45,13 @@ public:
      * @tparam T The type of the packet struct to send.
      */
     template <typename T>
-    void send(const Packet<T>& packet) {
+    void send(const Packet& packet) {
         // Create enough space to store the entire packet
-        std::vector<uint8_t> data_to_send (2 * sizeof(packet.header) + sizeof(packet.data));
+        std::vector<uint8_t> data_to_send (2 * sizeof(packet.header) + packet.data.size());
 
         // Copy header and data into the byte array
         memcpy(data_to_send.data(), &packet.header, sizeof(packet.header));
-        memcpy(data_to_send.data() + sizeof(packet.header), &packet.data, sizeof(packet.data));
+        memcpy(data_to_send.data() + sizeof(packet.header), packet.data.data(), packet.data.size());
 
         // Frame the packet using COBS
         const std::optional<std::vector<uint8_t>> encoded = cobs_encode(data_to_send);
@@ -68,10 +69,14 @@ public:
      * Blocking call that reads and handles a single packet
      * @return A packet of any data type. Use the ID from the header to decode which data the packet uses.
      */
-    std::unique_ptr<Packet<std::any>> receive();
+    void receive();
+
+    std::optional<Packet> pop_latest(PacketId packet_id);
 
     /** A map of packet struct identifiers to packet IDs */
     std::unordered_map<std::type_index, PacketId> structs_to_packet_ids;
+    /** A map of packet ids to their Buffer */
+    std::unordered_map<PacketId, Buffer> buffers;
 
 private:
     /** The type of device this SerialHandler is running on. */

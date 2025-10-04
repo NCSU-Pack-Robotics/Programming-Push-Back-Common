@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "Header.hpp"
 #include "../utils.hpp"
 
@@ -7,21 +9,20 @@
  * A generic, lightweight packet structure that contains a header and data of type T.
  * @tparam T The type of data contained in the packet. Typically, this will be a type defined in packet/types.
  */
-template <typename T>
 class Packet {
 public:
     /** The header of the packet, containing metadata such as packet ID and checksum. */
     Header header{};
 
     /** The data contained in the packet. This is template because any type of data can be contained. */
-    T data;
+    std::vector<uint8_t> data;
 
     /**
      * Constructs a Packet completely.
      * @param packet_id The ID of the packet type.
      * @param data The data to be sent in the packet.
      */
-    explicit Packet(const PacketId packet_id, const T data) : data(data) {
+    explicit Packet(const PacketId packet_id, std::vector<uint8_t> data) : data(std::move(data)) {
         // Build the header
         this->header.packet_id = packet_id;
         this->header.checksum = compute_checksum();
@@ -32,7 +33,7 @@ public:
      * @param header The received header of the packet
      * @param data The received data of the packet
      */
-    explicit Packet(const Header header, const T data) : header(header), data(data) {}
+    explicit Packet(const Header header, std::vector<uint8_t> data) : header(header), data(std::move(data)) {}
 
     /**
      * Checks if the checksum in the header matches the computed checksum of the packet.
@@ -62,7 +63,7 @@ private:
 
         // Compute checksum over data
         const auto data_bytes = reinterpret_cast<const uint8_t*>(&this->data);
-        const uint16_t dataChecksum = compute_twos_sum(data_bytes, sizeof(T));
+        const uint16_t dataChecksum = compute_twos_sum(data_bytes, data.size());
 
         // Combine the two checksums
         checksum = headerChecksum + dataChecksum;
