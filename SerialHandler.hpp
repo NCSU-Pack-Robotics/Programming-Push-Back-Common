@@ -73,8 +73,6 @@ public:
 
     std::optional<Packet> pop_latest(PacketId packet_id);
 
-    /** A map of packet struct identifiers to packet IDs */
-    std::unordered_map<std::type_index, PacketId> structs_to_packet_ids;
     /** A map of packet ids to their Buffer */
     std::unordered_map<PacketId, Buffer> buffers;
 
