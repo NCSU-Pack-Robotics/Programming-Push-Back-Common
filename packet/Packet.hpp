@@ -46,11 +46,10 @@ public:
 
 private:
     /**
-     * Computes a one's complement checksum of the given data for integrity checking.
-     * Using one's complement to mimic IP. IP uses one's complement bc it's irrespective of edianness.
+     * Computes a two's complement checksum of the given data for integrity checking.
      *
      * https://datatracker.ietf.org/doc/html/rfc1071
-     * @return A 16 bit one's complement checksum of the entire packet
+     * @return A 16 bit two's complement checksum of the entire packet
      */
     uint16_t compute_checksum() {
         uint16_t checksum = 0;
@@ -59,17 +58,16 @@ private:
         Header header = this->header;  // This is a copy to avoid modifying the original
         header.checksum = 0; // Zero out checksum field for calculation
         const auto header_bytes = reinterpret_cast<const uint8_t*>(&this->header);
-        const uint16_t headerChecksum = compute_ones_sum(header_bytes, sizeof(Header));
+        const uint16_t headerChecksum = compute_twos_sum(header_bytes, sizeof(Header));
 
         // Compute checksum over data
         const auto data_bytes = reinterpret_cast<const uint8_t*>(&this->data);
-        const uint16_t dataChecksum = compute_ones_sum(data_bytes, sizeof(T));
+        const uint16_t dataChecksum = compute_twos_sum(data_bytes, sizeof(T));
 
         // Combine the two checksums
         checksum = headerChecksum + dataChecksum;
-        checksum = (checksum & 0xFFFF) + (checksum >> 16); // Add carry if any
 
-        // Return the 1's complement of the sum
-        return ~checksum;
+        // Return the 2's complement of the sum
+        return checksum;
     }
 };

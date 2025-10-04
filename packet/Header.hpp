@@ -10,7 +10,7 @@ struct Header {
     PacketId packet_id;
 
     /**
-     * The one's complement checksum of the packet data.
+     * The checksum of the packet data.
      * Should be computed using <code>utils.compute_checksum</code> and verified on receipt.
      */
     uint16_t checksum;
