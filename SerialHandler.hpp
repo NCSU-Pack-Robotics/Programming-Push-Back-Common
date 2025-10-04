@@ -44,7 +44,6 @@ public:
      * This is a reference to avoid unnecessary copying.
      * @tparam T The type of the packet struct to send.
      */
-    template <typename T>
     void send(const Packet& packet) {
         // Create enough space to store the entire packet
         std::vector<uint8_t> data_to_send (2 * sizeof(packet.header) + packet.data.size());

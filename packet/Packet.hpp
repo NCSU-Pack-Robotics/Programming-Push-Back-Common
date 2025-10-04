@@ -6,8 +6,7 @@
 #include "../utils.hpp"
 
 /**
- * A generic, lightweight packet structure that contains a header and data of type T.
- * @tparam T The type of data contained in the packet. Typically, this will be a type defined in packet/types.
+ * A generic, lightweight packet structure that contains a header and data as an array of bytes.
  */
 class Packet {
 public:
@@ -21,8 +20,12 @@ public:
      * Constructs a Packet completely.
      * @param packet_id The ID of the packet type.
      * @param data The data to be sent in the packet.
+     * @param length The length of the data in bytes.
      */
-    explicit Packet(const PacketId packet_id, std::vector<uint8_t> data) : data(std::move(data)) {
+    explicit Packet(const PacketId packet_id, const uint8_t* data, const size_t length) {
+        std::vector<uint8_t> packet_data(length);
+        packet_data.assign(data, data + length);
+
         // Build the header
         this->header.packet_id = packet_id;
         this->header.checksum = compute_checksum();
