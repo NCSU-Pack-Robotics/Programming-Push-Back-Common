@@ -1,4 +1,4 @@
-#include "COBS.hpp"
+#include "utils.hpp"
 
 std::optional<std::vector<uint8_t>> cobs_encode(const std::vector<uint8_t>& data) {
     if (data.empty()) return std::nullopt;
@@ -64,4 +64,24 @@ std::optional<std::vector<uint8_t>> cobs_decode(const std::vector<uint8_t>& data
     output.resize(output_index);
 
     return output;
+}
+
+
+uint16_t compute_twos_sum(const uint8_t* data, const size_t length) {
+    uint16_t sum = 0;  // The running sum
+    for (size_t i = 0; i < length; i += 2) {
+        // Grab the first byte
+        uint16_t word = data[i];
+
+        // Create a 16-bit word from two bytes
+        if (i + 1 < length) {  // If there's a second byte
+            word = (word << 8) | data[i + 1]; // Combine two bytes into one word
+        } else {  // If there's an odd byte
+            word <<= 8; // Pad with 0s
+        }
+
+        sum += word;  // Two's complement addition
+    }
+
+    return sum; // Return the sum
 }
