@@ -35,7 +35,7 @@ SerialHandler::SerialHandler(const DeviceType device_type) : device_type(device_
         {
             libusb_device_descriptor device_descriptor{};
             // Get the device descriptor. If LIBUSBX_API_VERSION >= 0x01000102 then this function will never fail.
-            if (libusb_get_device_descriptor(devices[i], &device_descriptor) < 0) continue;
+            if (libusb_get_device_descriptor(devices[i], &device_descriptor) != LIBUSB_SUCCESS) continue;
 
             if (device_descriptor.idVendor == VEX_USB_VENDOR_ID)
             {
