@@ -1,4 +1,4 @@
-#include "packet.hpp"
+#include "Packet.hpp"
 
 Packet::Packet(const PacketId packet_id, const uint8_t* data, const size_t length) {
     std::vector<uint8_t> packet_data(length);
