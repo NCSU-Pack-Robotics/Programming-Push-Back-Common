@@ -36,10 +36,10 @@ public:
      * Returns the data from the packet as the specified type. The specified type is likely a struct from
      * <code>common/packet/types</code>.
      * @tparam T The type of the data to return. This must match with the PacketID from the header.
-     * @return A pointer to the memory stored in the packet reinterpreted to be of type T.
+     * @return A copy of the data in the packet as the specified type.
      */
     template<typename T>
-    std::shared_ptr<T> get_data() const;
+    T get_data() const;
 
     /**
      * Checks if the checksum in the header matches the computed checksum of the packet.
@@ -59,6 +59,6 @@ private:
 };
 
 template <typename T>
-std::shared_ptr<T> Packet::get_data() const {
-    return reinterpret_cast<std::shared_ptr<T>>(this->data.data);
+T Packet::get_data() const {
+    return *this->data.data();
 }
