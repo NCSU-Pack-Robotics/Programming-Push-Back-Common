@@ -7,7 +7,9 @@
 #include <functional>
 #include <typeindex>
 #include <unistd.h>
-#include <libusb-1.0/libusb.h>
+#if PI
+#include <libusb.h>
+#endif
 
 #include "Buffer.hpp"
 #include "packet/Packet.hpp"

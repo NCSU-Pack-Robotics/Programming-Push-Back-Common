@@ -8,7 +8,6 @@
 #include <optional>
 #include <unistd.h>
 #include <vector>
-#include <libusb-1.0/libusb.h>
 
 SerialHandler::SerialHandler()
 #if PI
