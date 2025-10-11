@@ -1,3 +1,5 @@
+build/
+
 ### C++ template
 
 cmake-build-do
