@@ -60,5 +60,5 @@ private:
 
 template <typename T>
 T Packet::get_data() const {
-    return *reinterpret_cast<T>(this->data.data());
+    return *reinterpret_cast<T*>(this->data.data());
 }
