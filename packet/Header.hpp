@@ -9,9 +9,6 @@ struct Header {
     /** The type of packet being sent. */
     PacketId packet_id;
 
-    /**
-     * The checksum of the packet data.
-     * Should be computed using <code>utils.compute_checksum</code> and verified on receipt.
-     */
+   // TODO: Remove once brain code also stops sending checksum
     uint16_t checksum;
 };

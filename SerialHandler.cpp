@@ -138,13 +138,6 @@ void SerialHandler::receive() {
 
     Packet received_packet{received_header, decoded.value()};
 
-    // Ensure the packet is valid by checking the checksum
-    if (!received_packet.check_checksum()) {
-        // If the checksum is invalid, ignore the packet
-        return;
-    }
-
-
     this->buffers[received_header.packet_id].add(received_packet);
 }
 

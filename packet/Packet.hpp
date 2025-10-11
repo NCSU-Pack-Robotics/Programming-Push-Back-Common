@@ -40,22 +40,6 @@ public:
      */
     template<typename T>
     T get_data() const;
-
-    /**
-     * Checks if the checksum in the header matches the computed checksum of the packet.
-     * A useful method to call upon receipt of a packet to ensure data integrity.
-     * @return True if the checksums match, false otherwise.
-     */
-    [[nodiscard]] bool check_checksum() const;
-
-private:
-    /**
-     * Computes a two's complement checksum of the given data for integrity checking.
-     *
-     * https://datatracker.ietf.org/doc/html/rfc1071
-     * @return A 16 bit two's complement checksum of the entire packet
-     */
-    [[nodiscard]] uint16_t compute_checksum() const;
 };
 
 template <typename T>
