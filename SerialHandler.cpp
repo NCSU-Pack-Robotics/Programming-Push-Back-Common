@@ -9,6 +9,10 @@
 #include <unistd.h>
 #include <vector>
 
+/** The request ID for setting the line coding over the USB control endpoint. */
+constexpr int SET_LINE_CODING = 0x20;
+constexpr int SET_CONFIGURATION = 0x09;
+
 SerialHandler::SerialHandler()
 #if PI
 : device_handle(nullptr)
@@ -50,8 +54,24 @@ SerialHandler::SerialHandler()
                     return;
                 }
                 this->device_handle = handle;
+                libusb_detach_kernel_driver(handle, VEX_USB_USER_INTERFACE_NUMBER);
+                libusb_detach_kernel_driver(handle, VEX_USB_USER_DATA_INTERFACE_NUMBER);
+
+
+                libusb_set_configuration(handle, 1);
+
+
+                unsigned char line_coding_bytes[] = { 0x80, 0x25, 0x0, 0x0, 0x0, 0x0, 0x8 };
+                // Since this is output, line_coding_bytes will not be modified by libusb_control_transfer
+                libusb_control_transfer(handle, LIBUSB_RECIPIENT_INTERFACE | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_ENDPOINT_OUT,
+                    SET_LINE_CODING, 0, VEX_USB_COMMUNICATIONS_INTERFACE_NUMBER, line_coding_bytes, sizeof(line_coding_bytes) / sizeof(unsigned char), 0);
+
+                libusb_control_transfer(handle, LIBUSB_RECIPIENT_INTERFACE | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_ENDPOINT_OUT,
+                    SET_LINE_CODING, 0, VEX_USB_USER_INTERFACE_NUMBER, line_coding_bytes, sizeof(line_coding_bytes) / sizeof(unsigned char), 0);
                 printf("Got device handle!\n");
                 break;
+
+                // 0b100001
             }
         }
 
@@ -82,7 +102,8 @@ void SerialHandler::receive() {
         ssize_t num_read = 0;
 
         #if PI
-                libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN, &in, 1, reinterpret_cast<int*>(&num_read), 0);
+                int res = libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN, &in, 1, reinterpret_cast<int*>(&num_read), 0);
+                if (res) printf("Error: %s\n", libusb_error_name(res));
         #endif
         #if BRAIN
                 num_read = read(STDIN_FILENO, &in, 1);
@@ -93,7 +114,12 @@ void SerialHandler::receive() {
             return;
         }
 
-        bytes.push_back(in);
+        if (in != 0x20)
+        {
+            bytes.push_back(in);
+        }
+
+
     }
 
     // Cobs does not decode the last 0x00 byte, it is only used in encoding so we have a delimiter
