@@ -21,7 +21,7 @@ uint16_t Packet::compute_checksum() const {
     // Compute checksum over header
     Header header = this->header;  // This is a copy to avoid modifying the original
     header.checksum = 0; // Zero out checksum field for calculation
-    const auto header_bytes = reinterpret_cast<const uint8_t*>(&this->header);
+    const auto header_bytes = reinterpret_cast<const uint8_t*>(&header);
     const uint16_t headerChecksum = compute_twos_sum(header_bytes, sizeof(Header));
 
     // Compute checksum over data
