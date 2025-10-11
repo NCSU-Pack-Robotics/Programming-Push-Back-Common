@@ -54,9 +54,14 @@ SerialHandler::SerialHandler()
                     return;
                 }
                 this->device_handle = handle;
+
+                // libusb_detach_kernel_driver(handle, VEX_USB_COMMUNICATIONS_INTERFACE_NUMBER);
+                // libusb_detach_kernel_driver(handle, VEX_USB_COMMUNICATIONS_DATA_INTERFACE_NUMBER);
                 libusb_detach_kernel_driver(handle, VEX_USB_USER_INTERFACE_NUMBER);
                 libusb_detach_kernel_driver(handle, VEX_USB_USER_DATA_INTERFACE_NUMBER);
 
+                // libusb_control_transfer(handle, LIBUSB_RECIPIENT_DEVICE | LIBUSB_REQUEST_TYPE_STANDARD | LIBUSB_ENDPOINT_OUT, SET_CONFIGURATION, 1,
+                //     VEX_USB_COMMUNICATIONS_INTERFACE_NUMBER, nullptr, 0, 0);
 
                 libusb_set_configuration(handle, 1);
 
@@ -68,10 +73,8 @@ SerialHandler::SerialHandler()
 
                 libusb_control_transfer(handle, LIBUSB_RECIPIENT_INTERFACE | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_ENDPOINT_OUT,
                     SET_LINE_CODING, 0, VEX_USB_USER_INTERFACE_NUMBER, line_coding_bytes, sizeof(line_coding_bytes) / sizeof(unsigned char), 0);
-                printf("Got device handle!\n");
                 break;
 
-                // 0b100001
             }
         }
 
@@ -93,37 +96,38 @@ SerialHandler::~SerialHandler() {
 }
 
 void SerialHandler::receive() {
-    uint8_t in = ' ';  // Current byte being read
-    std::vector<uint8_t> bytes;
+    auto zero_ptr = reinterpret_cast<unsigned char*>(strchr(reinterpret_cast<char*>(buffer), '\0'));
+    while (!zero_ptr || zero_ptr - buffer >= total_read && total_read < 512) {
 
-    // Read until we get a null byte (0x00)—end of packet
-    // TODO: It would be faster to read more than 1 byte at a time, but I'm not sure if the benefit outweighs the cost to search the data for the null byte.
-    while (in != '\0') {
         ssize_t num_read = 0;
-
         #if PI
-                int res = libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN, &in, 1, reinterpret_cast<int*>(&num_read), 0);
+                int res = libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN, buffer + total_read, sizeof(buffer) - total_read, reinterpret_cast<int*>(&num_read), 0);
                 if (res) printf("Error: %s\n", libusb_error_name(res));
         #endif
         #if BRAIN
-                num_read = read(STDIN_FILENO, &in, 1);
+                num_read = read(STDIN_FILENO, buffer + total_read, sizeof(buffer) - total_read);
         #endif
+        total_read += num_read;
 
         if (num_read != 1) {
             /* Error occurred or EOF */
             return;
         }
 
-        if (in != 0x20)
-        {
-            bytes.push_back(in);
-        }
-
 
     }
 
+    if (!zero_ptr) return; // exceeded 512 buffer
+
+    int packet_length = zero_ptr - buffer;
+    std::vector<uint8_t> bytes(packet_length);
+
+    memcpy(bytes.data(), buffer, packet_length);
+
+    memmove(buffer, buffer + packet_length + 1, sizeof(buffer) - packet_length);
+    total_read -= packet_length;
+
     // Cobs does not decode the last 0x00 byte, it is only used in encoding so we have a delimiter
-    bytes.pop_back();
 
     const std::optional<std::vector<uint8_t>> decoded = cobs_decode(bytes);
     if (!decoded.has_value()) return; // If we fail to decode, ignore the packet

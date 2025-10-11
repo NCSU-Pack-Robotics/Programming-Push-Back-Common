@@ -118,5 +118,7 @@ private:
     #if PI
     /** A libusb device handle. */
     libusb_device_handle* device_handle;
+    unsigned char buffer[512];
+    ssize_t total_read = 0;
     #endif
 };
