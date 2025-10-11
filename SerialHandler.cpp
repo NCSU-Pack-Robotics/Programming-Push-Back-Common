@@ -11,11 +11,11 @@
 #include <libusb-1.0/libusb.h>
 
 SerialHandler::SerialHandler()
-#ifdef PI
+#if PI
 : device_handle(nullptr)
 #endif
 {
-#ifdef PI
+#if PI
         // Initialize the libusb context. We pass nullptr as the context to use the global default one.
         if (int error = libusb_init_context(nullptr, nullptr, 0) != LIBUSB_SUCCESS)
         {
@@ -51,17 +51,20 @@ SerialHandler::SerialHandler()
                     return;
                 }
                 this->device_handle = handle;
+                printf("Got device handle!\n");
                 break;
             }
         }
 
         // All devices start with ref count of 1, this subtracts 1 so it dereferences them all
         libusb_free_device_list(devices, 1);
+
+        if (!this->device_handle) printf("Failed to find vex brain!\n");
 #endif
 }
 
 SerialHandler::~SerialHandler() {
-#ifdef PI
+#if PI
     if (this->device_handle)
     {
         libusb_close(this->device_handle);

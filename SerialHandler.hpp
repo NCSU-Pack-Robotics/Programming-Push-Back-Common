@@ -59,15 +59,6 @@ constexpr uint8_t VEX_USB_USER_DATA_ENDPOINT_IN = 0x85;
 /** The output endpoint for the user data interface, with type bulk. */
 constexpr uint8_t VEX_USB_USER_DATA_ENDPOINT_OUT = 0x06;
 
-/** An enumeration for the type of device this SerialHandler is running on. */
-enum class DeviceType {
-    /** The VEX Brain */
-    BRAIN,
-
-    /** A RaspberryPi (Gen. 4 at the time of writing). */
-    PI
-};
-
 class SerialHandler {
 public:
     /**
@@ -102,10 +93,10 @@ public:
 
         // Write the data to the serial connection
         // TODO: Both of these functions have a possibility to not fully send all of the data, we would need to resend the part not sent
-        #ifdef BRAIN
+        #if BRAIN
         write(STDOUT_FILENO, encoded->data(), encoded->size());
         #endif
-        #ifdef PI
+        #if PI
         libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_OUT, encoded->data(), static_cast<int>(encoded->size()), nullptr, 0);
         #endif
     }
@@ -122,7 +113,7 @@ public:
     std::unordered_map<PacketId, Buffer> buffers;
 
 private:
-    #ifdef PI
+    #if PI
     /** A libusb device handle. */
     libusb_device_handle* device_handle;
     #endif
