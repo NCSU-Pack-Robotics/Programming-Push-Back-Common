@@ -10,8 +10,12 @@
 #include <vector>
 #include <libusb-1.0/libusb.h>
 
-SerialHandler::SerialHandler(const DeviceType device_type) : device_type(device_type), device_handle(nullptr) {
-    if (device_type == DeviceType::PI) {
+SerialHandler::SerialHandler()
+#ifdef PI
+: device_handle(nullptr)
+#endif
+{
+#ifdef PI
         // Initialize the libusb context. We pass nullptr as the context to use the global default one.
         if (int error = libusb_init_context(nullptr, nullptr, 0) != LIBUSB_SUCCESS)
         {
@@ -53,15 +57,17 @@ SerialHandler::SerialHandler(const DeviceType device_type) : device_type(device_
 
         // All devices start with ref count of 1, this subtracts 1 so it dereferences them all
         libusb_free_device_list(devices, 1);
-    }
+#endif
 }
 
 SerialHandler::~SerialHandler() {
+#ifdef PI
     if (this->device_handle)
     {
         libusb_close(this->device_handle);
         libusb_exit(nullptr);
     }
+#endif
 }
 
 void SerialHandler::receive() {
@@ -72,11 +78,13 @@ void SerialHandler::receive() {
     // TODO: It would be faster to read more than 1 byte at a time, but I'm not sure if the benefit outweighs the cost to search the data for the null byte.
     while (in != '\0') {
         ssize_t num_read = 0;
-        if (this->device_type == DeviceType::PI) {
-            libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN, &in, 1, reinterpret_cast<int*>(&num_read), 0);
-        } else if (this->device_type == DeviceType::BRAIN) {
-            num_read = read(STDIN_FILENO, &in, 1);
-        }
+
+        #ifdef PI
+                libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN, &in, 1, reinterpret_cast<int*>(&num_read), 0);
+        #endif
+        #ifdef BRAIN
+                num_read = read(STDIN_FILENO, &in, 1);
+        #endif
 
         if (num_read != 1) {
             /* Error occurred or EOF */
