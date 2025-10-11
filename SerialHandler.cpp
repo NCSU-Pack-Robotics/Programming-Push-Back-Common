@@ -82,10 +82,10 @@ void SerialHandler::receive() {
     while (in != '\0') {
         ssize_t num_read = 0;
 
-        #ifdef PI
+        #if PI
                 libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN, &in, 1, reinterpret_cast<int*>(&num_read), 0);
         #endif
-        #ifdef BRAIN
+        #if BRAIN
                 num_read = read(STDIN_FILENO, &in, 1);
         #endif
 
