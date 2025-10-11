@@ -39,7 +39,7 @@ public:
      * @return A pointer to the memory stored in the packet reinterpreted to be of type T.
      */
     template<typename T>
-    std::shared_ptr<T> get_data() const;
+    T get_data() const;
 
     /**
      * Checks if the checksum in the header matches the computed checksum of the packet.
@@ -59,6 +59,6 @@ private:
 };
 
 template <typename T>
-std::shared_ptr<T> Packet::get_data() const {
-    return reinterpret_cast<std::shared_ptr<T>>(this->data.data);
+T Packet::get_data() const {
+    return *reinterpret_cast<T>(this->data.data());
 }
