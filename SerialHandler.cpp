@@ -80,29 +80,6 @@ SerialHandler::~SerialHandler() {
 #endif
 }
 
-void SerialHandler::send(const Packet& packet) {
-    // Create enough space to store the entire packet
-    std::vector<uint8_t> data_to_send(sizeof(packet.header) + packet.data.size());
-
-    // Copy header and data into the byte array
-    memcpy(data_to_send.data(), &packet.header, sizeof(packet.header));
-    memcpy(data_to_send.data() + sizeof(packet.header), packet.data.data(), packet.data.size());
-
-    // Frame the packet using COBS
-    std::optional<std::vector<uint8_t>> encoded = cobs_encode(data_to_send);
-    if (!encoded.has_value())
-        return;
-
-    // Write the data to the serial connection
-    // TODO: Both of these functions have a possibility to not fully send all of the data, we would need to resend the part not sent
-    #if BRAIN
-    write(STDOUT_FILENO, encoded->data(), encoded->size());
-    #elif PI
-    libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_OUT, encoded->data(),
-                         static_cast<int>(encoded->size()), nullptr, 0);
-    #endif
-}
-
 void SerialHandler::receive() {
     // Get a pointer to the first null byte in the buffer
     auto zero_ptr = reinterpret_cast<unsigned char*>(strchr(reinterpret_cast<char*>(this->buffer), '\0'));

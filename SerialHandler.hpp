@@ -91,14 +91,35 @@ public:
     /**
      * Sends the given packet over the serial connection.
      *
-     * This method takes an entire packet as opposed to the data in order to focus the scope to transmission logic and
-     * allow flexibility in packet structure later.
-     *
-     * @param packet The packet struct to send.
-     * This is a reference to avoid unnecessary copying.
+     * @param header The header of the packet to send.
+     * @param data The data to be sent in the packet.
      * @tparam T The type of the packet struct to send.
      */
-    void send(const Packet& packet);
+    template <typename T>
+    void send(Header header, T& data) {
+        Packet packet{header, reinterpret_cast<uint8_t*>(&data), sizeof(data)};
+        // Create enough space to store the entire packet
+        std::vector<uint8_t> data_to_send(sizeof(packet.header) + packet.data.size());
+
+        // Copy header and data into the byte array
+        memcpy(data_to_send.data(), &packet.header, sizeof(packet.header));
+        memcpy(data_to_send.data() + sizeof(packet.header), packet.data.data(), packet.data.size());
+
+        // Frame the packet using COBS
+        std::optional<std::vector<uint8_t>> encoded = cobs_encode(data_to_send);
+        if (!encoded.has_value())
+            return;
+
+        // Write the data to the serial connection
+        // TODO: Both of these functions have a possibility to not fully send all of the data, we would need to resend the part not sent
+#if BRAIN
+        write(STDOUT_FILENO, encoded->data(), encoded->size());
+#elif PI
+        libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_OUT, encoded->data(),
+                             static_cast<int>(encoded->size()), nullptr, 0);
+#endif
+    }
+
 
     /**
      * Blocking call that reads and handles a single packet
