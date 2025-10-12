@@ -1,10 +1,10 @@
 #include "Packet.hpp"
 
-Packet::Packet(Header header, const uint8_t* data, size_t length) {
-    std::vector<uint8_t> packet_data(length);
-    packet_data.assign(data, data + length);
+#include <cstring>
 
-    // Build the header
+Packet::Packet(Header header, const uint8_t* data, size_t length) {
+    this->data.resize(length);
+    memcpy(this->data.data(), data, length);
+
     this->header = header;
-    this->data = std::move(packet_data);
 }
