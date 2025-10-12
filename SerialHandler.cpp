@@ -87,10 +87,10 @@ void SerialHandler::receive()
 {
     // Get a pointer to the first null byte in the buffer
     auto zero_ptr = reinterpret_cast<unsigned char*>(strchr(reinterpret_cast<char*>(this->buffer), '\0'));
-    int num_read = 0;
     while (!zero_ptr // If a null byte is not found in the buffer
         || zero_ptr - this->buffer >= this->next_write_index) { // If the null byte that gets found is past the amount of data we actually read
 
+        int num_read = 0;
         // Reading the MAX_PACKET_SIZE is important so that libusb does not throw an error for not having enough room for the data.
         // We read to buffer + an offset in case the packet we are reading spans multiple libusb packets
         #if PI
