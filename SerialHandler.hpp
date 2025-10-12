@@ -61,6 +61,10 @@ constexpr uint8_t VEX_USB_USER_DATA_ENDPOINT_IN = 0x85;
 /** The output endpoint for the user data interface, with type bulk. */
 constexpr uint8_t VEX_USB_USER_DATA_ENDPOINT_OUT = 0x06;
 
+/** The maximum packet size in bytes that is supported by the Vex Brain. It is important to read at least this amount in bulk
+ * transfers to avoid errors. */
+constexpr int MAX_PACKET_SIZE = 512;
+
 class SerialHandler {
 public:
     /**
@@ -83,7 +87,7 @@ public:
      */
     void send(const Packet& packet) {
         // Create enough space to store the entire packet
-        std::vector<uint8_t> data_to_send (2 * sizeof(packet.header) + packet.data.size());
+        std::vector<uint8_t> data_to_send (sizeof(packet.header) + packet.data.size());
 
         // Copy header and data into the byte array
         memcpy(data_to_send.data(), &packet.header, sizeof(packet.header));
@@ -118,7 +122,7 @@ private:
     #if PI
     /** A libusb device handle. */
     libusb_device_handle* device_handle;
-    unsigned char buffer[512];
-    ssize_t total_read = 0;
+    unsigned char buffer[1024];
+    ssize_t next_write_index = 0;
     #endif
 };

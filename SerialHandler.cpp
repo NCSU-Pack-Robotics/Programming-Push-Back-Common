@@ -95,37 +95,37 @@ SerialHandler::~SerialHandler() {
 #endif
 }
 
-void SerialHandler::receive() {
-    auto zero_ptr = reinterpret_cast<unsigned char*>(strchr(reinterpret_cast<char*>(buffer), '\0'));
-    while (!zero_ptr || zero_ptr - buffer >= total_read && total_read < 512) {
+void SerialHandler::receive()
+{
+    // Get a pointer to the first null byte in the buffer
+    auto zero_ptr = reinterpret_cast<unsigned char*>(strchr(reinterpret_cast<char*>(this->buffer), '\0'));
+    int num_read = 0;
+    while (!zero_ptr // If a null byte is not found in the buffer
+        || zero_ptr - this->buffer >= this->next_write_index) { // If the null byte that gets found is past the amount of data we actually read
 
-        ssize_t num_read = 0;
+
         #if PI
-                int res = libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN, buffer + total_read, sizeof(buffer) - total_read, reinterpret_cast<int*>(&num_read), 0);
+                int res = libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN, this->buffer + this->next_write_index, MAX_PACKET_SIZE, &num_read, 0);
                 if (res) printf("Error: %s\n", libusb_error_name(res));
         #endif
         #if BRAIN
-                num_read = read(STDIN_FILENO, buffer + total_read, sizeof(buffer) - total_read);
+                num_read = read(STDIN_FILENO, buffer + this->next_write_index, MAX_PACKET_SIZE);
         #endif
-        total_read += num_read;
+        this->next_write_index += num_read;
 
-        if (num_read != 1) {
-            /* Error occurred or EOF */
-            return;
-        }
+        // TODO: Handle EOF or other errors
 
-
+        zero_ptr = reinterpret_cast<unsigned char*>(strchr(reinterpret_cast<char*>(this->buffer), '\0'));
     }
 
-    if (!zero_ptr) return; // exceeded 512 buffer
-
-    int packet_length = zero_ptr - buffer;
+    // packet length not including the zero
+    int packet_length = zero_ptr - this->buffer;
     std::vector<uint8_t> bytes(packet_length);
 
-    memcpy(bytes.data(), buffer, packet_length);
+    memcpy(bytes.data(), this->buffer, packet_length); // copy the bytes in the packet, not including the null delimiter
 
-    memmove(buffer, buffer + packet_length + 1, sizeof(buffer) - packet_length);
-    total_read -= packet_length;
+    memmove(this->buffer, this->buffer + packet_length + 1, this->next_write_index - (packet_length + 1));
+    this->next_write_index -= packet_length + 1;
 
     // Cobs does not decode the last 0x00 byte, it is only used in encoding so we have a delimiter
 
@@ -135,8 +135,8 @@ void SerialHandler::receive() {
     // Decode the header
     Header received_header{};
     memcpy(&received_header, decoded->data(), sizeof(received_header));
-
-    Packet received_packet{received_header, decoded.value()};
+    const uint8_t* ptr = decoded->data();
+    Packet received_packet{received_header.packet_id, ptr + sizeof(received_header), decoded->size() - sizeof(received_header)};
 
     this->buffers[received_header.packet_id].add(received_packet);
 }

@@ -10,4 +10,6 @@ enum class PacketId {
 
     /** Packet containing data from the custom encoders. */
     ENCODER,
+
+    LARGE
 };

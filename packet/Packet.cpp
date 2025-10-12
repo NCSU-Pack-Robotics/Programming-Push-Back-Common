@@ -6,4 +6,5 @@ Packet::Packet(const PacketId packet_id, const uint8_t* data, const size_t lengt
 
     // Build the header
     this->header.packet_id = packet_id;
+    this->data = std::move(packet_data);
 }
