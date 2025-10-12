@@ -120,11 +120,11 @@ private:
     #if PI
     /** A libusb device handle. */
     libusb_device_handle* device_handle;
+    #endif
 
     /** An array of bytes that stores the data from receiving packets. */
     unsigned char buffer[MAX_PACKET_SIZE]{};
 
     /** The index in the buffer array where the next read data should be placed. */
     ssize_t next_write_index = 0;
-    #endif
 };
