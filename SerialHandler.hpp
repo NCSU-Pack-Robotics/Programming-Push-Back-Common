@@ -65,6 +65,19 @@ constexpr uint8_t VEX_USB_USER_DATA_ENDPOINT_OUT = 0x06;
  * transfers to avoid errors. */
 constexpr int MAX_PACKET_SIZE = 512;
 
+/** The request ID for setting the line coding over the USB control endpoint. */
+constexpr int SET_LINE_CODING = 0x20;
+
+/** The payload for the set line coding command. This is required to be sent before the Vex Brain will recognise bulk transfers
+ * as standard input/output. The data for set line coding is as follows:
+ * The first 4 bytes are the baud rate, in this case 9600
+ * The next byte is an enum for the amount of stop bits. 0x00 corresponds to 1 stop bit.
+ * The next byte is an enum for the type of parity. 0x00 means no parity.
+ * The final byte is the number of data bits, in this case 8.
+ * Here's a good reference for these types: https://www.silabs.com/documents/public/application-notes/AN758.pdf
+ */
+inline unsigned char line_coding_bytes[] = { 0x80, 0x25, 0x0, 0x0, 0x0, 0x0, 0x8 };
+
 class SerialHandler {
 public:
     /**
@@ -122,7 +135,9 @@ private:
     #if PI
     /** A libusb device handle. */
     libusb_device_handle* device_handle;
-    unsigned char buffer[1024];
+    /** An array of bytes that stores the data from receiving packets. */
+    unsigned char buffer[1024]{};
+    /** The index in the buffer array where the next read data should be placed. */
     ssize_t next_write_index = 0;
     #endif
 };

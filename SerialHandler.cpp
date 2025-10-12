@@ -9,10 +9,6 @@
 #include <unistd.h>
 #include <vector>
 
-/** The request ID for setting the line coding over the USB control endpoint. */
-constexpr int SET_LINE_CODING = 0x20;
-constexpr int SET_CONFIGURATION = 0x09;
-
 SerialHandler::SerialHandler()
 #if PI
 : device_handle(nullptr)
@@ -55,24 +51,16 @@ SerialHandler::SerialHandler()
                 }
                 this->device_handle = handle;
 
-                // libusb_detach_kernel_driver(handle, VEX_USB_COMMUNICATIONS_INTERFACE_NUMBER);
-                // libusb_detach_kernel_driver(handle, VEX_USB_COMMUNICATIONS_DATA_INTERFACE_NUMBER);
                 libusb_detach_kernel_driver(handle, VEX_USB_USER_INTERFACE_NUMBER);
                 libusb_detach_kernel_driver(handle, VEX_USB_USER_DATA_INTERFACE_NUMBER);
 
-                // libusb_control_transfer(handle, LIBUSB_RECIPIENT_DEVICE | LIBUSB_REQUEST_TYPE_STANDARD | LIBUSB_ENDPOINT_OUT, SET_CONFIGURATION, 1,
-                //     VEX_USB_COMMUNICATIONS_INTERFACE_NUMBER, nullptr, 0, 0);
 
-                libusb_set_configuration(handle, 1);
-
-
-                unsigned char line_coding_bytes[] = { 0x80, 0x25, 0x0, 0x0, 0x0, 0x0, 0x8 };
                 // Since this is output, line_coding_bytes will not be modified by libusb_control_transfer
                 libusb_control_transfer(handle, LIBUSB_RECIPIENT_INTERFACE | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_ENDPOINT_OUT,
-                    SET_LINE_CODING, 0, VEX_USB_COMMUNICATIONS_INTERFACE_NUMBER, line_coding_bytes, sizeof(line_coding_bytes) / sizeof(unsigned char), 0);
+                    SET_LINE_CODING, 0, VEX_USB_COMMUNICATIONS_INTERFACE_NUMBER, line_coding_bytes, sizeof(line_coding_bytes), 0);
 
                 libusb_control_transfer(handle, LIBUSB_RECIPIENT_INTERFACE | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_ENDPOINT_OUT,
-                    SET_LINE_CODING, 0, VEX_USB_USER_INTERFACE_NUMBER, line_coding_bytes, sizeof(line_coding_bytes) / sizeof(unsigned char), 0);
+                    SET_LINE_CODING, 0, VEX_USB_USER_INTERFACE_NUMBER, line_coding_bytes, sizeof(line_coding_bytes), 0);
                 break;
 
             }
@@ -103,13 +91,14 @@ void SerialHandler::receive()
     while (!zero_ptr // If a null byte is not found in the buffer
         || zero_ptr - this->buffer >= this->next_write_index) { // If the null byte that gets found is past the amount of data we actually read
 
-
+        // Reading the MAX_PACKET_SIZE is important so that libusb does not throw an error for not having enough room for the data.
+        // We read to buffer + an offset in case the packet we are reading spans multiple libusb packets
         #if PI
                 int res = libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN, this->buffer + this->next_write_index, MAX_PACKET_SIZE, &num_read, 0);
                 if (res) printf("Error: %s\n", libusb_error_name(res));
         #endif
         #if BRAIN
-                num_read = read(STDIN_FILENO, buffer + this->next_write_index, MAX_PACKET_SIZE);
+                num_read = read(STDIN_FILENO, this->buffer + this->next_write_index, MAX_PACKET_SIZE);
         #endif
         this->next_write_index += num_read;
 
@@ -118,16 +107,15 @@ void SerialHandler::receive()
         zero_ptr = reinterpret_cast<unsigned char*>(strchr(reinterpret_cast<char*>(this->buffer), '\0'));
     }
 
-    // packet length not including the zero
-    int packet_length = zero_ptr - this->buffer;
+    int packet_length = zero_ptr - this->buffer + 1;
     std::vector<uint8_t> bytes(packet_length);
 
-    memcpy(bytes.data(), this->buffer, packet_length); // copy the bytes in the packet, not including the null delimiter
+    // Copy the bytes into the bytes vector, excluding the null delimiter
+    memcpy(bytes.data(), this->buffer, packet_length - 1);
 
-    memmove(this->buffer, this->buffer + packet_length + 1, this->next_write_index - (packet_length + 1));
-    this->next_write_index -= packet_length + 1;
-
-    // Cobs does not decode the last 0x00 byte, it is only used in encoding so we have a delimiter
+    // In case we read multiple packets in 1 libusb packet, move the data between the end of our current packet, and the total bytes read, to the beginning of the buffer
+    memmove(this->buffer, this->buffer + packet_length, this->next_write_index - packet_length);
+    this->next_write_index -= packet_length;
 
     const std::optional<std::vector<uint8_t>> decoded = cobs_decode(bytes);
     if (!decoded.has_value()) return; // If we fail to decode, ignore the packet
