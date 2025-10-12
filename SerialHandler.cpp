@@ -147,7 +147,7 @@ void SerialHandler::receive() {
     Header received_header{};
     memcpy(&received_header, decoded->data(), sizeof(received_header));
     const uint8_t* ptr = decoded->data();
-    const Packet received_packet{received_header.packet_id, ptr + sizeof(received_header),
+    const Packet received_packet{received_header, ptr + sizeof(received_header),
                                  decoded->size() - sizeof(received_header)};
 
     this->buffers[received_header.packet_id].add(received_packet);
