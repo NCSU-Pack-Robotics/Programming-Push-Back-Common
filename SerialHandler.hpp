@@ -60,9 +60,12 @@ constexpr uint8_t VEX_USB_USER_DATA_ENDPOINT_IN = 0x85;
 /** The output endpoint for the user data interface, with type bulk. */
 constexpr uint8_t VEX_USB_USER_DATA_ENDPOINT_OUT = 0x06;
 
-/** The maximum packet size in bytes that is supported by the Vex Brain. It is important to read at least this amount in bulk
+/** The maximum packet size in bytes that is supported by the Vex Brain. This is a hardware limitation. It is important to read at least this amount in bulk
  * transfers to avoid errors. */
-constexpr int MAX_PACKET_SIZE = 512;
+constexpr int MAX_LIBUSB_PACKET_SIZE = 512;
+
+/** The maximum packet size that we can use for our packets. */
+constexpr size_t MAX_PACKET_SIZE = 1024;
 
 /** The request ID for setting the line coding over the USB control endpoint. */
 constexpr int SET_LINE_CODING = 0x20;
@@ -119,7 +122,7 @@ private:
     libusb_device_handle* device_handle;
 
     /** An array of bytes that stores the data from receiving packets. */
-    unsigned char buffer[1024]{};
+    unsigned char buffer[MAX_PACKET_SIZE]{};
 
     /** The index in the buffer array where the next read data should be placed. */
     ssize_t next_write_index = 0;

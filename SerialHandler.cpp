@@ -115,12 +115,12 @@ void SerialHandler::receive() {
 
         #if PI
         const int res = libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN,
-                                       this->buffer + this->next_write_index, MAX_PACKET_SIZE, &num_read, 0);
+                                       this->buffer + this->next_write_index, MAX_LIBUSB_PACKET_SIZE, &num_read, 0);
         if (res)
             printf("Error: %s\n", libusb_error_name(res));
 
         #elif BRAIN
-        num_read = read(STDIN_FILENO, this->buffer + this->next_write_index, MAX_PACKET_SIZE);
+        num_read = read(STDIN_FILENO, this->buffer + this->next_write_index, MAX_LIBUSB_PACKET_SIZE);
         #endif
 
         this->next_write_index += num_read;
