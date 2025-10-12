@@ -11,5 +11,6 @@ enum class PacketId {
     /** Packet containing data from the custom encoders. */
     ENCODER,
 
+    /** Struct to test sending packets > 512 bytes */
     LARGE
 };
