@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <cstring>
 #include <functional>
-#include <typeindex>
 #include <unistd.h>
 #if PI
 #include <libusb.h>
@@ -76,13 +75,11 @@ constexpr int SET_LINE_CODING = 0x20;
  * The final byte is the number of data bits, in this case 8.
  * Here's a good reference for these types: https://www.silabs.com/documents/public/application-notes/AN758.pdf
  */
-inline unsigned char line_coding_bytes[] = { 0x80, 0x25, 0x0, 0x0, 0x0, 0x0, 0x8 };
+inline unsigned char line_coding_bytes[] = {0x80, 0x25, 0x0, 0x0, 0x0, 0x0, 0x8};
 
 class SerialHandler {
 public:
-    /**
-     * Constructs a SerialHandler for the given device type.
-     */
+    /** Constructs a SerialHandler for the given device type. */
     SerialHandler();
 
     /** Cleans up the SerialHandler, closing any open file descriptors. */
@@ -98,27 +95,7 @@ public:
      * This is a reference to avoid unnecessary copying.
      * @tparam T The type of the packet struct to send.
      */
-    void send(const Packet& packet) {
-        // Create enough space to store the entire packet
-        std::vector<uint8_t> data_to_send (sizeof(packet.header) + packet.data.size());
-
-        // Copy header and data into the byte array
-        memcpy(data_to_send.data(), &packet.header, sizeof(packet.header));
-        memcpy(data_to_send.data() + sizeof(packet.header), packet.data.data(), packet.data.size());
-
-        // Frame the packet using COBS
-        std::optional<std::vector<uint8_t>> encoded = cobs_encode(data_to_send);
-        if (!encoded.has_value()) return;
-
-        // Write the data to the serial connection
-        // TODO: Both of these functions have a possibility to not fully send all of the data, we would need to resend the part not sent
-        #if BRAIN
-        write(STDOUT_FILENO, encoded->data(), encoded->size());
-        #endif
-        #if PI
-        libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_OUT, encoded->data(), static_cast<int>(encoded->size()), nullptr, 0);
-        #endif
-    }
+    void send(const Packet& packet);
 
     /**
      * Blocking call that reads and handles a single packet
@@ -126,6 +103,11 @@ public:
      */
     void receive();
 
+    /**
+     * Returns and remove the last recieved packet from the appropriate buffer.
+     * @param packet_id The type of backet (and buffer) to remove from.
+     * @return The removed packet.
+     */
     std::optional<Packet> pop_latest(PacketId packet_id);
 
     /** A map of packet ids to their Buffer */
@@ -135,8 +117,10 @@ private:
     #if PI
     /** A libusb device handle. */
     libusb_device_handle* device_handle;
+
     /** An array of bytes that stores the data from receiving packets. */
     unsigned char buffer[1024]{};
+
     /** The index in the buffer array where the next read data should be placed. */
     ssize_t next_write_index = 0;
     #endif
