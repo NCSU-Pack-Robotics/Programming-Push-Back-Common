@@ -38,11 +38,8 @@ public:
      * @tparam T The type of the data to return. This must match with the PacketID from the header.
      * @return A pointer to the memory stored in the packet reinterpreted to be of type T.
      */
-    template<typename T>
-    T get_data() const;
+    template <typename T>
+    T get_data() const {
+        return *reinterpret_cast<const T*>(this->data.data());
+    }
 };
-
-template <typename T>
-T Packet::get_data() const {
-    return *reinterpret_cast<const T*>(this->data.data());
-}
