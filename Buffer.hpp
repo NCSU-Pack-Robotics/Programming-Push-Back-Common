@@ -15,7 +15,8 @@ class Buffer {
     /** Adds a packet to the buffer */
     void add(const Packet& data);
 
-    friend class SerialHandler; // Friend SerialHandler so that it can use the private add method
+    // Friend SerialHandler so that it can use the private add method
+    friend class SerialHandler;
 
 public:
     Buffer() : max_size(-1) {};
@@ -27,5 +28,5 @@ public:
     std::optional<Packet> pop_latest();
 
     /** Returns the size of the dequeue */
-    size_t size() const;
+    [[nodiscard]] size_t size() const;
 };

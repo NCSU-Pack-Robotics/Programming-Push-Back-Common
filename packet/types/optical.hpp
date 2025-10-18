@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <stdfloat>
 
 /**
  * A packet containing data from the optical sensor.
@@ -8,5 +8,5 @@
  */
 struct OpticalData {
     /** Coordinate of the robot as reported by the optical sensor. */
-    int32_t x, y, heading;
+    std::float64_t x, y, heading;
 };

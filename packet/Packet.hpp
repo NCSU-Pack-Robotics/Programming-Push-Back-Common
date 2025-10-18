@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 
 #include "Header.hpp"
 #include "../utils.hpp"
@@ -13,7 +14,7 @@ public:
     /** The header of the packet, containing metadata such as packet ID and checksum. */
     Header header;
 
-    /** The data contained in the packet. This is a template because any type of data can be contained. */
+    /** The data bytes contained in the packet. */
     std::vector<uint8_t> data;
 
     /**
