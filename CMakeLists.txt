@@ -27,6 +27,13 @@ add_library(Programming_Push_Back_Common_lib STATIC
     ${HEADER_FILES}
 )
 
+if (BRAIN)
+    add_definitions(-DBRAIN)
+endif()
+if (PI)
+    add_definitions(-DPI)
+endif()
+
 ####################################################
 
 # Need to: sudo apt-get install pkg-config  libusb-1.0-0-dev
