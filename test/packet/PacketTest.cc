@@ -29,38 +29,16 @@ TEST(PacketTest, constructor_id_and_data) {
 TEST(PacketTest, constructor_header_and_data) {
     // Create necessary parts of a packet
     constexpr auto id = PacketId::OPTICAL;
-    constexpr uint16_t checksum = 0x6769;
-    constexpr Header header = {id, checksum};
+    constexpr Header header = {id};
 
     // Convert data to vector
     const auto data_ptr = reinterpret_cast<const uint8_t*>(&DATA_STRUCT);
     const std::vector data_vector(data_ptr, data_ptr + sizeof(DATA_STRUCT));
 
     // Construct the packet
-    const Packet packet(header, data_vector);
+    const Packet packet(header, data_vector.data(), data_vector.size());
 
     check_contents(packet);
-}
-
-/** Tests that the checksums are computed consistently and checked correctly. */
-TEST(PacketTest, check_checksum) {
-    // Construct a packet where checksum is computed at construction
-    constexpr auto id = PacketId::ENCODER;
-    const auto data_ptr = reinterpret_cast<const uint8_t*>(&DATA_STRUCT);  // Reduces inline casting
-    Packet packet(id, data_ptr, sizeof(DATA_STRUCT));
-
-    EXPECT_TRUE(packet.check_checksum()) << "Packet checksum should be valid right after construction.";
-
-    // Break the checksum
-    packet.header.checksum = 0x1234;
-    EXPECT_FALSE(packet.check_checksum()) << "Checksum should be invalid because it was updated incorrectly.";
-
-    // Construct a packet where checksum is given
-    constexpr Header header = {id, 0x5678};  // This checksum is probably not correct
-    const std::vector data_vector(data_ptr, data_ptr + sizeof(DATA_STRUCT));
-    packet = Packet(header, data_vector);
-
-    EXPECT_FALSE(packet.check_checksum()) << "Packet was constructed with incorrect checksum in header.";
 }
 
 /** Checks if the `get_data` method returns the byte array as the given type properly */
@@ -76,14 +54,12 @@ TEST(PacketTest, get_data) {
 static void check_contents(const Packet& packet) {
     // Grab the data from the given packet
     const uint8_t id_byte = static_cast<uint8_t>(packet.header.packet_id);
-    const uint16_t checksum_bytes = packet.header.checksum;
     const std::float64_t heading = packet.get_data<OpticalData>().heading;
     const std::float64_t x = packet.get_data<OpticalData>().x;
     const std::float64_t y = packet.get_data<OpticalData>().y;
 
     // Ensure the fields are what they should be
     EXPECT_EQ(id_byte, 0x00) << "ID Should be OPTICAL.";
-    EXPECT_NE(checksum_bytes, 0x00) << "Checksum is likely non-zero.";
     EXPECT_EQ(packet.data.size(), sizeof(OpticalData));
     EXPECT_EQ(heading, DATA_STRUCT.heading);
     EXPECT_EQ(x, DATA_STRUCT.x);
