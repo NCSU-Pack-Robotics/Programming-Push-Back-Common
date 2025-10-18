@@ -11,17 +11,23 @@
  */
 class Packet {
 public:
-    /** The header of the packet, containing metadata such as packet ID and checksum. */
+    /** The header of the packet, containing metadata such as packet ID. */
     Header header;
 
     /** The data bytes contained in the packet. */
     std::vector<uint8_t> data;
 
     /**
-     * Constructs a Packet completely.
-     * @param header The packet header information.
-     * @param data A pointer to the beginning of the data in the packet.
+     * @param packet_id The ID of the packet type.
+     * @param data The data to be sent in the packet.
      * @param length The length of the data in bytes.
+     */
+    Packet(PacketId packet_id, const uint8_t* data, size_t length);
+
+    /**
+     * @param header The received header of the packet
+     * @param data The received data of the packet
+     * @param length The length of the data in bytes
      */
     explicit Packet(Header header, const uint8_t* data, size_t length);
 

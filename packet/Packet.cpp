@@ -1,10 +1,16 @@
 #include "Packet.hpp"
 
-#include <cstring>
+Packet::Packet(const PacketId packet_id, const uint8_t* data, const size_t length) {
+    std::vector<uint8_t> packet_data(length);
+    packet_data.assign(data, data + length);
+    this->data = packet_data;
 
-Packet::Packet(Header header, const uint8_t* data, size_t length) {
-    this->data.resize(length);
-    memcpy(this->data.data(), data, length);
+    // Build the header
+    this->header.packet_id = packet_id;
+}
 
-    this->header = header;
+ Packet::Packet(const Header header, const uint8_t* data, const size_t length) : header(header) {
+    std::vector<uint8_t> packet_data(length);
+    packet_data.assign(data, data + length);
+    this->data = packet_data;
 }
