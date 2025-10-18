@@ -2,7 +2,7 @@
 
 // Tests if the GTEST framework is working
 // Copied from: https://google.github.io/googletest/quickstart-cmake.html
-TEST(TestSuiteName, TestName) {
+TEST(TestSuiteNameCommon, TestName) {
     // Expect two strings not to be equal.
     EXPECT_STRNE("hello", "world");
     // Expect equality.
