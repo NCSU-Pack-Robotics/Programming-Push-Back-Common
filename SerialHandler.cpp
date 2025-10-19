@@ -80,7 +80,7 @@ SerialHandler::~SerialHandler() {
 #endif
 }
 
-void send(const Packet& packet) {
+void SerialHandler::send(const Packet& packet) {
     // Create enough space to store the entire packet
     std::vector<uint8_t> data_to_send(sizeof(packet.header) + packet.data.size());
 
