@@ -19,14 +19,37 @@ public:
 
     /**
      * @param packet_id The ID of the packet type.
-     * @param data The data to be sent in the packet.
-     * @param length The length of the data in bytes.
+     * @param data A pointer to the data to include in the packet. The data is copied into the packet.
      */
-    Packet(PacketId packet_id, const uint8_t* data, size_t length);
+    template <typename T>
+    Packet(const PacketId packet_id, const T* data) {
+        // Build the header
+        const Header h = {packet_id};
+
+        // Use other constructor to construct packet
+        *this = Packet(h, data);
+    }
 
     /**
+     * Leaving this constructor explicit to avoid accidental misuse of the header.
      * @param header The received header of the packet
-     * @param data The received data of the packet
+     * @param data The received data of the packet The data is copied into the packet.
+     */
+    template<typename T>
+    explicit Packet(const Header header, const T* data) : header(header) {
+        // Cast data pointer to a byte pointer
+        const auto data_bytes = reinterpret_cast<const uint8_t*>(data);
+
+        // Use other constructor to construct packet
+        *this = Packet(header, data_bytes, sizeof(T));
+    }
+
+    /**
+     * This constructor is more convenient to use when the data is already in byte form or when the type of the data is
+     * unknown (such as when receiving data over serial).
+     * Leaving this constructor explicit to avoid accidental misuse of the header.
+     * @param header The received header of the packet
+     * @param data The received data of the packet in bytes
      * @param length The length of the data in bytes
      */
     explicit Packet(Header header, const uint8_t* data, size_t length);

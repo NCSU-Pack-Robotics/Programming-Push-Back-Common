@@ -3,6 +3,7 @@
 #include "../../packet/Packet.hpp"
 #include "optical.hpp"
 #include "../../PacketId.hpp"
+#include "types/optical.hpp"
 
 /**
  * Helper method to check the contents of a packet.
@@ -20,9 +21,18 @@ constexpr OpticalData DATA_STRUCT = {.x = 420.69, .y = -123.456, .heading = 0};
 TEST(PacketTest, constructor_id_and_data) {
     // Create a packet
     constexpr auto id = PacketId::OPTICAL;
-    const Packet packet(id, reinterpret_cast<const uint8_t*>(&DATA_STRUCT), sizeof(DATA_STRUCT));
+    const Packet packet(id, &DATA_STRUCT);
 
     check_contents(packet);
+
+    // Ensure the implicit construction of a packet like this works
+    const Packet* implicit_packet = nullptr;
+    bool worked = false;
+    EXPECT_NO_THROW({
+        implicit_packet = new Packet({id, &DATA_STRUCT});
+        worked = true;
+    });
+    if (worked && implicit_packet) check_contents(*implicit_packet);
 }
 
 /** Tests the constructor of a packet with the full header and full data. */
@@ -31,19 +41,29 @@ TEST(PacketTest, constructor_header_and_data) {
     constexpr auto id = PacketId::OPTICAL;
     constexpr Header header = {id};
 
-    // Convert data to vector
-    const auto data_ptr = reinterpret_cast<const uint8_t*>(&DATA_STRUCT);
-    const std::vector data_vector(data_ptr, data_ptr + sizeof(DATA_STRUCT));
+    // Construct the packet
+    const Packet packet(header, &DATA_STRUCT);
+
+    check_contents(packet);
+}
+
+TEST(PacketTest, constructor_header_and_bytes) {
+    // Create necessary parts of a packet
+    constexpr auto id = PacketId::OPTICAL;
+    constexpr Header header = {id};
+
+    // Create byte array from data struct
+    const auto data_bytes = reinterpret_cast<const uint8_t*>(&DATA_STRUCT);
 
     // Construct the packet
-    const Packet packet(header, data_vector.data(), data_vector.size());
+    const Packet packet(header, data_bytes, sizeof(OpticalData));
 
     check_contents(packet);
 }
 
 /** Checks if the `get_data` method returns the byte array as the given type properly */
 TEST(PacketTest, get_data) {
-    const Packet packet(PacketId::OPTICAL, reinterpret_cast<const uint8_t*>(&DATA_STRUCT), sizeof(DATA_STRUCT));
+    const Packet packet(PacketId::OPTICAL, &DATA_STRUCT);
 
     const auto [x, y, heading] = packet.get_data<OpticalData>();
     EXPECT_TRUE(DATA_STRUCT.heading == heading);
