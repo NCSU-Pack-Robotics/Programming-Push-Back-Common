@@ -151,8 +151,26 @@ void SerialHandler::receive() {
                                  decoded->size() - sizeof(received_header)};
 
     this->buffers[received_header.packet_id].add(received_packet);
+
+    auto it = this->listeners.find(received_header.packet_id);
+    if (it != this->listeners.end()) {
+        it->second(received_packet);
+    }
 }
 
 std::optional<Packet> SerialHandler::pop_latest(const PacketId packet_id) {
     return this->buffers[packet_id].pop_latest();
+}
+
+bool SerialHandler::add_listener(PacketId packet_id, const std::function<void(const Packet&)>& listener) {
+    if (this->listeners.contains(packet_id)) return false;
+    this->listeners[packet_id] = listener;
+    return true;
+}
+
+bool SerialHandler::remove_listener(PacketId packet_id) {
+    auto it = this->listeners.find(packet_id);
+    if (it == this->listeners.end()) return false;
+    this->listeners.erase(it);
+    return true;
 }

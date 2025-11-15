@@ -111,11 +111,26 @@ public:
     /** A map of packet ids to their Buffer */
     std::unordered_map<PacketId, Buffer> buffers;
 
+    /**
+     * Adds an event listener to the list. There can only be one listener for each packet id.
+     * @Returns True if it was sucessfully added, or false if a listener for that id already exists.
+     */
+    bool add_listener(PacketId packet_id, const std::function<void(const Packet&)>& listener);
+
+    /**
+     * Removes a listener from the list.
+     * @Returns True if the listener was removed, or false if no listener exits with that id.
+     */
+    bool remove_listener(PacketId packet_id);
+
 private:
     #if PI
     /** A libusb device handle. */
     libusb_device_handle* device_handle;
     #endif
+
+    /** A map of packet IDs to event listeners that needs to respond instantly to a packet. */
+    std::unordered_map<PacketId, std::function<void(const Packet&)>> listeners;
 
     /** An array of bytes that stores the data from receiving packets. */
     unsigned char buffer[MAX_PACKET_SIZE]{};
