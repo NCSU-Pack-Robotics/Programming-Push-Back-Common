@@ -62,6 +62,6 @@ public:
      */
     template <typename T>
     T get_data() const {
-        return *reinterpret_cast<const T*>(this->data.data());
+        return std::bit_cast<T>(this->data.data());
     }
 };
