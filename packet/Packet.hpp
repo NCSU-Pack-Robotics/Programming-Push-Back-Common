@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <memory>
 #include <utility>
 
@@ -62,6 +63,8 @@ public:
      */
     template <typename T>
     T get_data() const {
-        return std::bit_cast<T>(this->data.data());
+        std::array<uint8_t, sizeof(T)> bytes;
+        memcpy(&bytes, this->data.data(), sizeof(T));
+        return std::bit_cast<T>(bytes);
     }
 };
