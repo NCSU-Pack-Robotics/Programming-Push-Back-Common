@@ -154,7 +154,7 @@ void SerialHandler::receive() {
 
     auto it = this->listeners.find(received_header.packet_id);
     if (it != this->listeners.end()) {
-        it->second(received_packet);
+        it->second(*this, received_packet);
     }
 }
 

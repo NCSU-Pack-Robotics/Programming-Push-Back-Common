@@ -130,7 +130,7 @@ private:
     #endif
 
     /** A map of packet IDs to event listeners that needs to respond instantly to a packet. */
-    std::unordered_map<PacketId, std::function<void(const Packet&)>> listeners;
+    std::unordered_map<PacketId, std::function<void(SerialHandler& serial_handler, const Packet&)>> listeners;
 
     /** An array of bytes that stores the data from receiving packets. */
     unsigned char buffer[MAX_PACKET_SIZE]{};
