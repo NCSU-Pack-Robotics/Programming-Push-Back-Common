@@ -2,5 +2,5 @@
 
 struct InitializeOptical
 {
-    int x;
+
 };
