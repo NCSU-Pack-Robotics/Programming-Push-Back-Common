@@ -3,7 +3,7 @@
 #include "../../packet/Packet.hpp"
 #include "optical.hpp"
 #include "../../PacketId.hpp"
-#include "types/optical.hpp"
+#include "types/Optical.hpp"
 
 /**
  * Helper method to check the contents of a packet.
@@ -21,7 +21,7 @@ constexpr OpticalData DATA_STRUCT = {.x = 420.69, .y = -123.456, .heading = 0};
 TEST(PacketTest, constructor_id_and_data) {
     // Create a packet
     constexpr auto id = PacketId::OPTICAL;
-    const Packet packet(id, &DATA_STRUCT);
+    const Packet packet({id}, DATA_STRUCT);
 
     check_contents(packet);
 
@@ -29,7 +29,7 @@ TEST(PacketTest, constructor_id_and_data) {
     const Packet* implicit_packet = nullptr;
     bool worked = false;
     EXPECT_NO_THROW({
-        implicit_packet = new Packet({id, &DATA_STRUCT});
+        implicit_packet = new Packet({{id}, DATA_STRUCT});
         worked = true;
     });
     if (worked && implicit_packet) check_contents(*implicit_packet);
@@ -42,7 +42,7 @@ TEST(PacketTest, constructor_header_and_data) {
     constexpr Header header = {id};
 
     // Construct the packet
-    const Packet packet(header, &DATA_STRUCT);
+    const Packet packet(header, DATA_STRUCT);
 
     check_contents(packet);
 }
@@ -63,7 +63,7 @@ TEST(PacketTest, constructor_header_and_bytes) {
 
 /** Checks if the `get_data` method returns the byte array as the given type properly */
 TEST(PacketTest, get_data) {
-    const Packet packet(PacketId::OPTICAL, &DATA_STRUCT);
+    const Packet packet({PacketId::OPTICAL}, DATA_STRUCT);
 
     const auto [x, y, heading] = packet.get_data<OpticalData>();
     EXPECT_TRUE(DATA_STRUCT.heading == heading);
