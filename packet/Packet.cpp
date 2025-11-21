@@ -1,8 +1,5 @@
 #include "Packet.hpp"
 
-Packet::Packet(const Header header, const uint8_t* data, const size_t length) : header(header) {
-    // Build the data vector
-    std::vector<uint8_t> packet_data(length);
-    packet_data.assign(data, data + length);
-    this->data = packet_data;
+Packet::Packet(Header header, const uint8_t* data, size_t length) : header(header), data(length) {
+    memcpy(this->data.data(), data, length);
 }

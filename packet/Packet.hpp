@@ -19,30 +19,14 @@ public:
     std::vector<uint8_t> data;
 
     /**
-     * @param packet_id The ID of the packet type.
-     * @param data A pointer to the data to include in the packet. The data is copied into the packet.
+     * @param header The header of the packet.
+     * @param data The data which is copied into the packets internal data buffer.
      */
     template <typename T>
-    Packet(const PacketId packet_id, const T* data) {
-        // Build the header
-        const Header h = {packet_id};
-
-        // Use other constructor to construct packet
-        *this = Packet(h, data);
-    }
-
-    /**
-     * Leaving this constructor explicit to avoid accidental misuse of the header.
-     * @param header The received header of the packet
-     * @param data The received data of the packet The data is copied into the packet.
-     */
-    template<typename T>
-    explicit Packet(const Header header, const T* data) : header(header) {
-        // Cast data pointer to a byte pointer
-        const auto data_bytes = reinterpret_cast<const uint8_t*>(data);
-
-        // Use other constructor to construct packet
-        *this = Packet(header, data_bytes, sizeof(T));
+    Packet(Header header, const T& data) : header(header), data(sizeof(T))
+    {
+        const auto* bytes = reinterpret_cast<const uint8_t*>(&data);
+        memcpy(this->data.data(), bytes, sizeof(T));
     }
 
     /**
