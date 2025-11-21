@@ -162,7 +162,7 @@ std::optional<Packet> SerialHandler::pop_latest(const PacketId packet_id) {
     return this->buffers[packet_id].pop_latest();
 }
 
-bool SerialHandler::add_listener(PacketId packet_id, const std::function<void(const Packet&)>& listener) {
+bool SerialHandler::add_listener(PacketId packet_id, const std::function<void(SerialHandler& serial_handler, const Packet&)>& listener) {
     if (this->listeners.contains(packet_id)) return false;
     this->listeners[packet_id] = listener;
     return true;

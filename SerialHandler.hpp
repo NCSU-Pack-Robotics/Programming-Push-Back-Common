@@ -115,7 +115,7 @@ public:
      * Adds an event listener to the list. There can only be one listener for each packet id.
      * @Returns True if it was sucessfully added, or false if a listener for that id already exists.
      */
-    bool add_listener(PacketId packet_id, const std::function<void(const Packet&)>& listener);
+    bool add_listener(PacketId packet_id, const std::function<void(SerialHandler& serial_handler, const Packet&)>& listener);
 
     /**
      * Removes a listener from the list.
