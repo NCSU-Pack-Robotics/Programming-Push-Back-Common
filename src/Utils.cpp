@@ -1,4 +1,4 @@
-#include "../Utils.hpp"
+#include "Utils.hpp"
 
 std::optional<std::vector<uint8_t>> Utils::cobs_encode(const std::vector<uint8_t>& data) {
     if (data.empty()) return std::nullopt;

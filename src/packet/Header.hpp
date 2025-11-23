@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../PacketId.hpp"
+#include "PacketId.hpp"
 
 /** The standard definition for the header send in all packets. */
 struct Header {

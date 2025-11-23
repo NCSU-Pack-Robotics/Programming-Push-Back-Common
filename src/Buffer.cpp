@@ -1,4 +1,4 @@
-#include "../Buffer.hpp"
+#include "Buffer.hpp"
 
 size_t Buffer::size() const {
     return this->data.size();
