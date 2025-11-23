@@ -14,16 +14,17 @@ class Packet {
 protected:
     /** The data bytes contained in the packet. */
     std::vector<uint8_t> data;
-public:
+
     /** The header of the packet, containing metadata such as packet ID. */
     Header header;
+public:
 
     /**
      * @param header The header of the packet.
      * @param data The data which is copied into the packets internal data buffer.
      */
     template <typename T>
-    Packet(Header header, const T& data) : header(header), data(sizeof(T))
+    Packet(Header header, const T& data) : data(sizeof(T)), header(header)
     {
         const auto* bytes = reinterpret_cast<const uint8_t*>(&data);
         memcpy(this->data.data(), bytes, sizeof(T));
@@ -48,9 +49,9 @@ public:
      * @return The data.
      */
     template <typename T>
-    T get_data() const {
-        std::array<uint8_t, sizeof(T)> bytes;
-        memcpy(&bytes, this->data.data(), sizeof(T));
-        return std::bit_cast<T>(bytes);
+    T::Data get_data() const {
+        std::array<uint8_t, sizeof(typename T::Data)> bytes;
+        memcpy(&bytes, this->data.data(), sizeof(typename T::Data));
+        return std::bit_cast<typename T::Data>(bytes);
     }
 };

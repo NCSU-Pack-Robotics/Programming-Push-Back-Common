@@ -7,7 +7,7 @@
 #endif
 
 #include "Buffer.hpp"
-#include "packet/Packet.hpp"
+#include "Packet.hpp"
 
 
 /**
@@ -98,26 +98,40 @@ public:
     void receive();
 
     /**
-     * Returns and remove the last recieved packet from the appropriate buffer.
-     * @param packet_id The type of backet (and buffer) to remove from.
+     * Returns and remove the last received packet from the appropriate buffer.
+     * @param packet_id The type of packet (and buffer) to remove from.
      * @return The removed packet.
      */
-    std::optional<Packet> pop_latest(PacketId packet_id);
-
-    /** A map of packet ids to their Buffer */
-    std::unordered_map<PacketId, Buffer> buffers;
+    template <typename T>
+    std::optional<Packet> pop_latest()
+    {
+        return this->buffers[T::id].pop_latest();
+    }
 
     /**
      * Adds an event listener to the list. There can only be one listener for each packet id.
-     * @Returns True if it was sucessfully added, or false if a listener for that id already exists.
+     * @Returns True if it was successfully added, or false if a listener for that id already exists.
      */
-    bool add_listener(PacketId packet_id, const std::function<void(SerialHandler& serial_handler, const Packet&)>& listener);
+    template <typename T>
+    bool add_listener(const std::function<void(SerialHandler& serial_handler, const Packet&)>& listener)
+    {
+        if (this->listeners.contains(T::id)) return false;
+        this->listeners[T::id] = listener;
+        return true;
+    }
 
     /**
      * Removes a listener from the list.
      * @Returns True if the listener was removed, or false if no listener exits with that id.
      */
-    bool remove_listener(PacketId packet_id);
+    template <typename T>
+    bool remove_listener()
+    {
+        auto it = this->listeners.find(T::id);
+        if (it == this->listeners.end()) return false;
+        this->listeners.erase(it);
+        return true;
+    }
 
 private:
     #if PI
@@ -125,8 +139,11 @@ private:
     libusb_device_handle* device_handle;
     #endif
 
+    /** A map of packet ids to their Buffer */
+    std::unordered_map<uint8_t, Buffer> buffers;
+
     /** A map of packet IDs to event listeners that needs to respond instantly to a packet. */
-    std::unordered_map<PacketId, std::function<void(SerialHandler& serial_handler, const Packet&)>> listeners;
+    std::unordered_map<uint8_t, std::function<void(SerialHandler& serial_handler, const Packet&)>> listeners;
 
     /** An array of bytes that stores the data from receiving packets. */
     unsigned char buffer[MAX_PACKET_SIZE]{};

@@ -1,7 +1,7 @@
 #pragma once
 #include <deque>
 
-#include "packet/Packet.hpp"
+#include "Packet.hpp"
 
 /** A buffer of packets. Used in case we receive multiple packets before we have a chance to read them. */
 class Buffer {
