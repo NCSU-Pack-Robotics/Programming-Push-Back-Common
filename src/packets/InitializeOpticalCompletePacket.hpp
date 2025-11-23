@@ -1,6 +1,6 @@
 #pragma once
 #include "Packet.hpp"
-#include "PacketTypes.hpp"
+#include "PacketIds.hpp"
 
 /** A packet sent from the pi to the brain to signal that initialization and calibration of the optical sensor has been finished. */
 class InitializeOpticalCompletePacket : public Packet
