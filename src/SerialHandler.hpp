@@ -115,7 +115,7 @@ public:
     template <typename T>
     bool add_listener(const std::function<void(SerialHandler& serial_handler, const Packet&)>& listener)
     {
-        if (this->listeners.contains(T::id)) return false;
+        if (this->listeners[T::id]) return false;
         this->listeners[T::id] = listener;
         return true;
     }
@@ -127,10 +127,12 @@ public:
     template <typename T>
     bool remove_listener()
     {
-        auto it = this->listeners.find(T::id);
-        if (it == this->listeners.end()) return false;
-        this->listeners.erase(it);
-        return true;
+        if (this->listeners[T::id])
+        {
+            this->listeners[T::id] = nullptr; // Put the function in an empty state
+            return true;
+        }
+        return false;
     }
 
 private:
@@ -140,10 +142,10 @@ private:
     #endif
 
     /** A map of packet ids to their Buffer */
-    std::unordered_map<uint8_t, Buffer> buffers;
+    std::array<Buffer, static_cast<int>(PacketIds::LENGTH)> buffers;
 
     /** A map of packet IDs to event listeners that needs to respond instantly to a packet. */
-    std::unordered_map<uint8_t, std::function<void(SerialHandler& serial_handler, const Packet&)>> listeners;
+    std::array<std::function<void(SerialHandler& serial_handler, const Packet&)>, static_cast<int>(PacketIds::LENGTH)> listeners;
 
     /** An array of bytes that stores the data from receiving packets. */
     unsigned char buffer[MAX_PACKET_SIZE]{};
