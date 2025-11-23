@@ -142,10 +142,10 @@ private:
     #endif
 
     /** A map of packet ids to their Buffer */
-    std::array<Buffer, static_cast<int>(PacketIds::LENGTH)> buffers;
+    std::array<Buffer, PacketIds::LENGTH> buffers;
 
     /** A map of packet IDs to event listeners that needs to respond instantly to a packet. */
-    std::array<std::function<void(SerialHandler& serial_handler, const Packet&)>, static_cast<int>(PacketIds::LENGTH)> listeners;
+    std::array<std::function<void(SerialHandler& serial_handler, const Packet&)>, PacketIds::LENGTH> listeners;
 
     /** An array of bytes that stores the data from receiving packets. */
     unsigned char buffer[MAX_PACKET_SIZE]{};

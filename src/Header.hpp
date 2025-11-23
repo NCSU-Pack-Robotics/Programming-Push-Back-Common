@@ -4,5 +4,5 @@
 /** The standard definition for the header send in all packets. */
 struct Header {
     /** The type of packet being sent. */
-    PacketIds packet_id;
+    uint8_t packet_id;
 };

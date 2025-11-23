@@ -145,9 +145,9 @@ void SerialHandler::receive() {
     const Packet received_packet{received_header, ptr + sizeof(received_header),
                                  decoded->size() - sizeof(received_header)};
 
-    this->buffers[static_cast<int>(received_header.packet_id)].add(received_packet);
+    this->buffers[received_header.packet_id].add(received_packet);
 
-    if (const auto& fn = this->listeners[static_cast<int>(received_header.packet_id)])
+    if (const auto& fn = this->listeners[received_header.packet_id])
     {
         fn(*this, received_packet);
     }

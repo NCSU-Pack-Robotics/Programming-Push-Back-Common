@@ -6,7 +6,7 @@
 class InitializeOpticalPacket : public Packet
 {
 public:
-    static constexpr PacketIds id = PacketIds::INITIALIZE_OPTICAL;
+    static constexpr uint8_t id = PacketIds::INITIALIZE_OPTICAL;
 
     struct Data
     {
