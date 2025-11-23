@@ -1,0 +1,10 @@
+#pragma once
+#include <cstdint>
+
+enum class PacketIds : uint8_t
+{
+    OPTICAL,
+    INITIALIZE_OPTICAL,
+    INITIALIZE_OPTICAL_COMPLETE,
+    LENGTH // Used to get the amount of packet ids at compile time
+};

@@ -9,7 +9,7 @@
 class OpticalPacket : public Packet
 {
 public:
-    static constexpr int id = 0x00;
+    static constexpr PacketIds id = PacketIds::OPTICAL;
 
     struct Data
     {
