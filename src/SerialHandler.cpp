@@ -89,7 +89,7 @@ void SerialHandler::send(const Packet& packet) {
     memcpy(data_to_send.data() + sizeof(packet.header), packet.data.data(), packet.data.size());
 
     // Frame the packet using COBS
-    std::optional<std::vector<uint8_t>> encoded = cobs_encode(data_to_send);
+    std::optional<std::vector<uint8_t>> encoded = Utils::cobs_encode(data_to_send);
     if (!encoded.has_value())
         return;
 
@@ -140,7 +140,7 @@ void SerialHandler::receive() {
     memmove(this->buffer, this->buffer + packet_length, this->next_write_index - packet_length);
     this->next_write_index -= packet_length;
 
-    const std::optional<std::vector<uint8_t>> decoded = cobs_decode(bytes);
+    const std::optional<std::vector<uint8_t>> decoded = Utils::cobs_decode(bytes);
     if (!decoded.has_value()) return; // If we fail to decode, ignore the packet
 
     // Decode the header
