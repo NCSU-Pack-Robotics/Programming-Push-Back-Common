@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "../../packet/Packet.hpp"
-#include "optical.hpp"
-#include "../../PacketId.hpp"
+#include "Packet.hpp"
+#include "PacketId.hpp"
 #include "types/Optical.hpp"
 
 /**
