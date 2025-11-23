@@ -11,12 +11,12 @@
  * A generic, lightweight packet structure that contains a header and data as an array of bytes.
  */
 class Packet {
+protected:
+    /** The data bytes contained in the packet. */
+    std::vector<uint8_t> data;
 public:
     /** The header of the packet, containing metadata such as packet ID. */
     Header header;
-
-    /** The data bytes contained in the packet. */
-    std::vector<uint8_t> data;
 
     /**
      * @param header The header of the packet.
@@ -38,6 +38,8 @@ public:
      * @param length The length of the data in bytes
      */
     explicit Packet(Header header, const uint8_t* data, size_t length);
+
+    std::vector<uint8_t> serialize() const;
 
     /**
      * Returns the data from the packet as the specified type. The specified type is likely a struct from

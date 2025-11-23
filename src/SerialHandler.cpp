@@ -81,12 +81,7 @@ SerialHandler::~SerialHandler() {
 }
 
 void SerialHandler::send(const Packet& packet) {
-    // Create enough space to store the entire packet
-    std::vector<uint8_t> data_to_send(sizeof(packet.header) + packet.data.size());
-
-    // Copy header and data into the byte array
-    memcpy(data_to_send.data(), &packet.header, sizeof(packet.header));
-    memcpy(data_to_send.data() + sizeof(packet.header), packet.data.data(), packet.data.size());
+    std::vector<uint8_t> data_to_send = packet.serialize();
 
     // Frame the packet using COBS
     std::optional<std::vector<uint8_t>> encoded = Utils::cobs_encode(data_to_send);
