@@ -17,7 +17,6 @@ protected:
 
     /** The header of the packet, containing metadata such as packet ID. */
     Header header;
-public:
 
     /**
      * @param header The header of the packet.
@@ -29,7 +28,7 @@ public:
         const auto* bytes = reinterpret_cast<const uint8_t*>(&data);
         memcpy(this->data.data(), bytes, sizeof(T));
     }
-
+public:
     /**
      * This constructor is more convenient to use when the data is already in byte form or when the type of the data is
      * unknown (such as when receiving data over serial).
@@ -41,6 +40,8 @@ public:
     explicit Packet(Header header, const uint8_t* data, size_t length);
 
     std::vector<uint8_t> serialize() const;
+
+    uint8_t get_id() const;
 
     /**
      * Returns the data from the packet as the specified type. The specified type is likely a struct from

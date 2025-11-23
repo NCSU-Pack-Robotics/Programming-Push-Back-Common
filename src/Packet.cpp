@@ -15,3 +15,8 @@ std::vector<uint8_t> Packet::serialize() const
 
     return data_to_send;
 }
+
+uint8_t Packet::get_id() const
+{
+    return this->header.packet_id;
+}
