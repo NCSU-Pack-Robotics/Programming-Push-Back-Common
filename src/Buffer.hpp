@@ -1,5 +1,6 @@
 #pragma once
 #include <deque>
+#include <limits>
 
 #include "Packet.hpp"
 
@@ -8,7 +9,7 @@ class Buffer {
     /** A double ended queue for our packets. The back is the newest values. */
     std::deque<Packet> data;
 
-    /** The max size of the dequeue. Defaults to -1 which means no max size. If add is called when size is at max then values
+    /** The max size of the dequeue. Defaults to numeric_limits::max. If add is called when size is at max then values
      * are trimmed off the front. */
     size_t max_size;
 
@@ -19,9 +20,9 @@ class Buffer {
     friend class SerialHandler;
 
 public:
-    Buffer() : max_size(-1) {};
+    Buffer() : max_size(std::numeric_limits<size_t>::max()) {};
 
-    /** Sets the maximum size of the dequeue */
+    /** Sets the maximum size of the dequeue. NOTE: This does not modify the size of the buffer until the next element is added. */
     void set_max_size(size_t size);
 
     /** Pops and returns the latest packet from the dequeue. Returns nullopt if the dequeue is empty */

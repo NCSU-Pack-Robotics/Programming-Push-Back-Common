@@ -78,10 +78,9 @@ inline unsigned char line_coding_bytes[] = {0x80, 0x25, 0x0, 0x0, 0x0, 0x0, 0x8}
 
 class SerialHandler {
 public:
-    /** Constructs a SerialHandler for the given device type. */
     SerialHandler();
 
-    /** Cleans up the SerialHandler, closing any open file descriptors. */
+    /** Cleans up the SerialHandler, closing the libusb device handle if running on the pi. */
     ~SerialHandler();
 
     /**
@@ -92,14 +91,13 @@ public:
     void send(const Packet& packet);
 
     /**
-     * Blocking call that reads and handles a single packet
-     * @return A packet of any data type. Use the ID from the header to decode which data the packet uses.
+     * Blocking call that reads a single packet.
+     * If the packet has listeners registered to it, they will execute before this function returns.
      */
     void receive();
 
     /**
      * Returns and remove the last received packet from the appropriate buffer.
-     * @param packet_id The type of packet (and buffer) to remove from.
      * @return The removed packet.
      */
     template <typename T>
@@ -141,15 +139,14 @@ private:
     libusb_device_handle* device_handle;
     #endif
 
-    /** A map of packet ids to their Buffer */
+    /** An array where the indices of the array correspond to the packet id whose buffer is stored there */
     std::array<Buffer, PacketIds::LENGTH> buffers;
 
-    /** A map of packet IDs to event listeners that needs to respond instantly to a packet. */
+    /** An array where the indices of the array correspond to the packet id whose listener is stored there */
     std::array<std::function<void(SerialHandler& serial_handler, const Packet&)>, PacketIds::LENGTH> listeners;
 
-    /** An array of bytes that stores the data from receiving packets. */
+    /** An array of bytes that stores the data from receiving packets. Used temporarily between calls to libusb_block_transfer when receiving */
     unsigned char buffer[MAX_PACKET_SIZE]{};
-
     /** The index in the buffer array where the next read data should be placed. */
     ssize_t next_write_index = 0;
 };

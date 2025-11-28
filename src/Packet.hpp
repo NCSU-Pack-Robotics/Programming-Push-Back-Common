@@ -8,7 +8,7 @@
 #include "Utils.hpp"
 
 /**
- * A generic, lightweight packet structure that contains a header and data as an array of bytes.
+ * Base class for packets to inherit from, that defines the data stored and available methods
  */
 class Packet {
 protected:
@@ -39,15 +39,13 @@ public:
      */
     explicit Packet(Header header, const uint8_t* data, size_t length);
 
+    /** @returns The header and the data combined into one vector of bytes */
     std::vector<uint8_t> serialize() const;
 
     uint8_t get_id() const;
 
     /**
-     * Returns the data from the packet as the specified type. The specified type is likely a struct from
-     * <code>common/packet/types</code>.
-     * @tparam T The type of the data to return. This must match with the PacketID from the header.
-     * @return The data.
+     * @returns The data from the packet. The packet must have data or this will not compile.
      */
     template <typename T>
     T::Data get_data() const {

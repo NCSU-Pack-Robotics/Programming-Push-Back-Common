@@ -49,11 +49,11 @@ pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
 
 # Use this to build on a normal computer
-#target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
+target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
 
 # Use this to build on the raspberry pi
-set(CMAKE_BUILD_RPATH "/usr/local/lib")
-target_link_directories(Programming_Push_Back_Common_lib PUBLIC /usr/local/lib)
-target_link_libraries(Programming_Push_Back_Common_lib PUBLIC /usr/local/lib/libusb-1.0.so)
+#set(CMAKE_BUILD_RPATH "/usr/local/lib")
+#target_link_directories(Programming_Push_Back_Common_lib PUBLIC /usr/local/lib)
+#target_link_libraries(Programming_Push_Back_Common_lib PUBLIC /usr/local/lib/libusb-1.0.so)
 
 add_subdirectory(test/)

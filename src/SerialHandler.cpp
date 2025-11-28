@@ -66,8 +66,7 @@ SerialHandler::SerialHandler()
     // All devices start with ref count of 1, this subtracts 1 so it dereferences them all
     libusb_free_device_list(devices, 1);
 
-    if (!this->device_handle)
-        printf("Failed to find vex brain!\n");
+    if (!this->device_handle) printf("Failed to find vex brain!\n");
 #endif
 }
 
@@ -100,9 +99,9 @@ void SerialHandler::send(const Packet& packet) {
 
 void SerialHandler::receive() {
     // Get a pointer to the first null byte in the buffer
-    auto zero_ptr = reinterpret_cast<unsigned char*>(strchr(reinterpret_cast<char*>(this->buffer), '\0'));
-    while (!zero_ptr // If a null byte is not found in the buffer
-        || zero_ptr - this->buffer >= this->next_write_index) { // If the null byte that gets found is past the amount of data we actually read
+    auto it = std::ranges::find(this->buffer, '\0');
+    while (it == std::ranges::end(this->buffer) // If a null byte is not found in the buffer
+        || it - this->buffer >= this->next_write_index) { // If the null byte that gets found is past the amount of data we actually read
 
         int num_read = 0;
         // Reading the MAX_PACKET_SIZE is important so that libusb does not throw an error for not having enough room for the data.
@@ -122,10 +121,10 @@ void SerialHandler::receive() {
 
         // TODO: Handle EOF or other errors
 
-        zero_ptr = reinterpret_cast<unsigned char*>(strchr(reinterpret_cast<char*>(this->buffer), '\0'));
+        it = std::ranges::find(this->buffer, '\0');
     }
 
-    const int packet_length = zero_ptr - this->buffer + 1;
+    const int packet_length = it - this->buffer + 1;
     std::vector<uint8_t> bytes(packet_length);
 
     // Copy the bytes into the bytes vector, excluding the null delimiter
