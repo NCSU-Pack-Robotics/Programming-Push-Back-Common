@@ -14,7 +14,7 @@ class Buffer {
     size_t max_size;
 
     /** Adds a packet to the buffer */
-    void add(const Packet& data);
+    void add(Packet&& data);
 
     // Friend SerialHandler so that it can use the private add method
     friend class SerialHandler;
