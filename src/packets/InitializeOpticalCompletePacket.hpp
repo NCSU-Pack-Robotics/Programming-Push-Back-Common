@@ -8,10 +8,5 @@ class InitializeOpticalCompletePacket : public Packet
 public:
     static constexpr uint8_t id = PacketIds::INITIALIZE_OPTICAL_COMPLETE;
 
-    struct Data
-    {
-
-    };
-
-    explicit InitializeOpticalCompletePacket(const Data& data = {}) : Packet(Header{id}, data) {};
+    InitializeOpticalCompletePacket() : Packet(Header{id}, nullptr, 0) {};
 };

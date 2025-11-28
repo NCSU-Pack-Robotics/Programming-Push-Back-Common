@@ -18,5 +18,5 @@ public:
         std::float64_t heading;
     };
 
-    explicit OpticalPacket(const Data& data) : Packet(Header{id}, data) {};
+    OpticalPacket(std::float64_t x, std::float64_t y, std::float64_t heading) : Packet(Header{id}, Data{x, y, heading}) {};
 };
