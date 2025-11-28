@@ -48,6 +48,7 @@ public:
      * @returns The data from the packet. The packet must have data or this will not compile.
      */
     template <typename T>
+    requires std::derived_from<T, Packet>
     T::Data get_data() const {
         std::array<uint8_t, sizeof(typename T::Data)> bytes;
         memcpy(&bytes, this->data.data(), sizeof(typename T::Data));
