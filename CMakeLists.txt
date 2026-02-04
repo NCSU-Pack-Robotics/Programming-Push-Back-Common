@@ -50,3 +50,10 @@ target_link_libraries(  # Link tests with source files and test framework
 
 include(GoogleTest)
 gtest_discover_tests(TestSuite DISCOVERY_MODE PRE_TEST)
+
+target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
+
+# Use this to build on a normal computer
+target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
+
+add_subdirectory(test/)
