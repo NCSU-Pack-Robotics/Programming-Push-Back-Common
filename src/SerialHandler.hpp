@@ -90,6 +90,13 @@ public:
      */
     void send(const Packet& packet);
 
+#if BRAIN
+    /**
+     * Non-blocking call that will read a single packet if there is one available, and return instantly.
+     * @returns true if it read a packet, false if no packet was available.
+     */
+    bool try_receive();
+#endif
     /**
      * Blocking call that reads a single packet.
      * If the packet has listeners registered to it, they will execute before this function returns.
@@ -136,6 +143,12 @@ public:
     }
 
 private:
+    /**
+     * Helper function used in try_receive and receive to decode a packet after one has been found.
+     * @param packet_end Pointer in buffer to the inclusive end of the packet
+     */
+    void decode_packet(const unsigned char* packet_end);
+
     #if PI
     /** A libusb device handle. */
     libusb_device_handle* device_handle;

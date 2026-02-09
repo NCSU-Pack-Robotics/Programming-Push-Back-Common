@@ -3,7 +3,7 @@
 #include <cmath>
 #include <cstring>
 #include <iostream>
-#include <fcntl.h>
+#include <poll.h>
 #include <optional>
 #include <unistd.h>
 #include <vector>
@@ -97,6 +97,46 @@ void SerialHandler::send(const Packet& packet) {
     #endif
 }
 
+
+#if BRAIN
+bool SerialHandler::try_receive() {
+    pollfd requests{STDIN_FILENO, POLLIN, 0}; // poll for input events
+    int num_events = poll(&requests, 1, 0); // returns -1 for error, 0 for timeout, otherwise amount polled
+
+    if (num_events <= 0) {
+        if (num_events == -1) {
+            // do something with the error
+        }
+        return false;
+    }
+
+    // could check if request event matches POLLIN, but its the only one we request so it has to match
+    ssize_t num_read = read(STDIN_FILENO, this->buffer + this->next_write_index, MAX_LIBUSB_PACKET_SIZE);
+
+    if (num_read <= 0) {
+        // handle errors
+        return false;
+    }
+
+    this->next_write_index += num_read;
+    // if the next write index is > the size then something has gone wrong on the senders side. the entire message will
+    // be discarded, because if index keeps growing we will exceed the length of the buffer. this is not an issue if the sender
+    // doesnt send data > max_packer_size
+    if (this->next_write_index >= MAX_PACKET_SIZE) {
+        this->next_write_index = 0;
+        return false;
+    }
+
+    auto it = std::ranges::find(this->buffer, '\0');
+    // make sure the packet has ended
+    if (it == std::ranges::end(this->buffer) || it - this->buffer >= this->next_write_index)
+        return false;
+
+    this->decode_packet(it);
+    return true;
+}
+#endif
+
 void SerialHandler::receive() {
     // Get a pointer to the first null byte in the buffer
     auto it = std::ranges::find(this->buffer, '\0');
@@ -134,7 +174,11 @@ void SerialHandler::receive() {
         it = std::ranges::find(this->buffer, '\0');
     }
 
-    const int packet_length = it - this->buffer + 1;
+    this->decode_packet(it);
+}
+
+void SerialHandler::decode_packet(const unsigned char* packet_end) {
+    const int packet_length = packet_end - this->buffer + 1;
     std::vector<uint8_t> bytes(packet_length);
 
     // Copy the bytes into the bytes vector, excluding the null delimiter
