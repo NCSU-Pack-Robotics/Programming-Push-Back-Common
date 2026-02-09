@@ -115,9 +115,19 @@ void SerialHandler::receive() {
 
         #elif BRAIN
         num_read = read(STDIN_FILENO, this->buffer + this->next_write_index, MAX_LIBUSB_PACKET_SIZE);
+        if (num_read <= 0) {
+            // possibly handle error if its -1
+            continue;
+            // continue, otherwise it could be -1 and then -1 gets added to next_write_index which messes up the buffer
+            // this error handling might not be ideal because in some error cases the buffer might be written to partially before having an error occur
+        }
         #endif
 
         this->next_write_index += num_read;
+        if (this->next_write_index >= MAX_PACKET_SIZE) {
+            this->next_write_index = 0;
+            continue;
+        }
 
         // TODO: Handle EOF or other errors
 

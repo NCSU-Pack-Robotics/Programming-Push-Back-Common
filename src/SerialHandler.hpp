@@ -93,6 +93,8 @@ public:
     /**
      * Blocking call that reads a single packet.
      * If the packet has listeners registered to it, they will execute before this function returns.
+     * Note: It is possible that a packet fails to decode after being read, this function will return
+     * regardless of the success of decoding.
      */
     void receive();
 
