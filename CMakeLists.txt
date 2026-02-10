@@ -38,22 +38,23 @@ if (PI)
     add_definitions(-DPI)
 endif()
 
-####################################################
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "Generic")
 
-# Need to: sudo apt-get install pkg-config  libusb-1.0-0-dev
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
+    # Need to: sudo apt-get install pkg-config  libusb-1.0-0-dev
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 
-# These links and includes need to be PUBLIC so that projects using this library also have access to the included libraries
+    # These links and includes need to be PUBLIC so that projects using this library also have access to the included libraries
 
-target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
+    target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
 
-# Use this to build on a normal computer
-#target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
+    # Use this to build on a normal computer
+    target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
 
-# Use this to build on the raspberry pi
-set(CMAKE_BUILD_RPATH "/usr/local/lib")
-target_link_directories(Programming_Push_Back_Common_lib PUBLIC /usr/local/lib)
-target_link_libraries(Programming_Push_Back_Common_lib PUBLIC /usr/local/lib/libusb-1.0.so)
+    # Use this to build on the raspberry pi
+    set(CMAKE_BUILD_RPATH "/usr/local/lib")
+    target_link_directories(Programming_Push_Back_Common_lib PUBLIC /usr/local/lib)
+    target_link_libraries(Programming_Push_Back_Common_lib PUBLIC /usr/local/lib/libusb-1.0.so)
 
-add_subdirectory(test/)
+    add_subdirectory(test/)
+endif()
