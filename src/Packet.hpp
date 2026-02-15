@@ -6,6 +6,7 @@
 
 #include "Header.hpp"
 #include "Utils.hpp"
+#include <gtest/gtest_prod.h>
 
 /**
  * Base class for packets to inherit from, that defines the data stored and available methods
@@ -53,4 +54,8 @@ public:
         memcpy(&bytes, this->data.data(), sizeof(typename T::Data));
         return std::bit_cast<typename T::Data>(bytes);
     }
+
+
+    friend class PacketTest; // give access to the private members
+    FRIEND_TEST(PacketTest, ConstructingFromDataStruct); // give that test access to the protected constructor
 };
