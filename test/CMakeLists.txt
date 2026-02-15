@@ -3,8 +3,6 @@ project(Programming_Push_Back_Common_Tests)
 
 set(CMAKE_CXX_STANDARD 23)
 
-file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS *.cc)
-
 # Get the GTEST framework
 include(FetchContent)
 FetchContent_Declare(
@@ -16,8 +14,9 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 add_executable(TestSuite  # Create test exec
-        ${TEST_FILES}
+        PacketTest.cc
 )
+
 target_link_libraries(  # Link tests with source files and test framework
         TestSuite
         Programming_Push_Back_Common_lib
