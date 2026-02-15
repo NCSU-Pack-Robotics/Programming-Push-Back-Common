@@ -32,10 +32,10 @@ target_include_directories(Programming_Push_Back_Common_lib PUBLIC
 )
 
 if (BRAIN)
-    add_definitions(-DBRAIN)
+    add_compile_definitions(BRAIN)
 endif()
 if (PI)
-    add_definitions(-DPI)
+    add_compile_definitions(PI)
 endif()
 
 ####################################################
@@ -49,11 +49,6 @@ pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
 
 # Use this to build on a normal computer
-#target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
-
-# Use this to build on the raspberry pi
-set(CMAKE_BUILD_RPATH "/usr/local/lib")
-target_link_directories(Programming_Push_Back_Common_lib PUBLIC /usr/local/lib)
-target_link_libraries(Programming_Push_Back_Common_lib PUBLIC /usr/local/lib/libusb-1.0.so)
+target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
 
 add_subdirectory(test/)
