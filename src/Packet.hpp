@@ -25,8 +25,7 @@ protected:
     template <typename T>
     Packet(Header header, const T& data) : data(sizeof(T)), header(header)
     {
-        const auto* bytes = reinterpret_cast<const uint8_t*>(&data);
-        memcpy(this->data.data(), bytes, sizeof(T));
+        memcpy(this->data.data(), &data, sizeof(T));
     }
 public:
     /**
