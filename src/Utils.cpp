@@ -40,13 +40,16 @@ std::optional<std::vector<uint8_t>> Utils::cobs_encode(const std::vector<uint8_t
 std::optional<std::vector<uint8_t>> Utils::cobs_decode(const std::vector<uint8_t>& data) {
     if (data.empty()) return std::nullopt;
 
-    std::vector<uint8_t> output;
-    output.resize(data.size() - 1);
+    std::vector<uint8_t> output(data.size() - 1);
 
     int output_index = 0;
-    int next_marker_index = data[0];
+    int next_marker_index = data[0]; // get the next marker, which is always the first element
     bool was_block_marker = (data[0] == 0xFF);
     // Block markers are special because they don't have a zero at the position they mark
+
+    // Note: Jumping directly to marker indexes and memcpying the data ranges into output would be
+    // more efficient, but this does not matter for our usage for now, especially since most
+    // of our packets are very small and full of zeros
 
     for (int i = 1; i < data.size(); i++) {
         if (i == next_marker_index) {
