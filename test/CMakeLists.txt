@@ -15,6 +15,7 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 add_executable(TestSuite  # Create test exec
         PacketTest.cc
+        CobsTest.cc
 )
 
 target_link_libraries(  # Link tests with source files and test framework
