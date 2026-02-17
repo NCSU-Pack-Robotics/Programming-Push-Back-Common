@@ -6,8 +6,9 @@
 
 #include "Header.hpp"
 #include "Utils.hpp"
+#ifdef GTEST
 #include <gtest/gtest_prod.h>
-
+#endif
 /**
  * Base class for packets to inherit from, that defines the data stored and available methods
  */
@@ -55,7 +56,8 @@ public:
         return std::bit_cast<typename T::Data>(bytes);
     }
 
-
+#ifdef GTEST
     friend class PacketTest; // give access to the private members
     FRIEND_TEST(PacketTest, ConstructingFromDataStruct); // give that test access to the protected constructor
+#endif
 };

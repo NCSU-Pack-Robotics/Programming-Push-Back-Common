@@ -37,6 +37,9 @@ endif()
 if (PI)
     add_compile_definitions(PI)
 endif()
+if (GTEST)
+    add_compile_definitions(GTEST)
+endif()
 
 ####################################################
 
