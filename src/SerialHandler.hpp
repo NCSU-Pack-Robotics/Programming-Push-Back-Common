@@ -91,14 +91,14 @@ public:
     // TODO: Also wrap read and write calls
     virtual int libusb_bulk_transfer(libusb_device_handle *dev_handle,
         unsigned char endpoint, unsigned char *data, int length,
-        int *transferred, unsigned int timeout) = 0;
+        int *transferred, unsigned int timeout) const = 0;
 };
 
 class UsbTransferProd : public UsbTransferWrapper {
 public:
     int libusb_bulk_transfer(libusb_device_handle *dev_handle,
         unsigned char endpoint, unsigned char *data, int length,
-        int *transferred, unsigned int timeout) override {
+        int *transferred, unsigned int timeout) const override {
         return ::libusb_bulk_transfer(dev_handle, endpoint, data, length, transferred, timeout);
     }
 };
@@ -106,7 +106,7 @@ public:
 class SerialHandler {
 public:
     /** Constructs the serial handler. Leave the default argument unless you want to use the gtest usb wrappers */
-    SerialHandler(UsbTransferWrapper& usb_wrapper = default_wrapper);
+    SerialHandler(const UsbTransferWrapper* usb_wrapper = &default_wrapper);
 
     /** Cleans up the SerialHandler, closing the libusb device handle if running on the pi. */
     ~SerialHandler();
@@ -193,7 +193,7 @@ private:
     /** The index in the buffer array where the next read data should be placed. */
     ssize_t next_write_index = 0;
 
-    static UsbTransferProd default_wrapper;
+    static constexpr UsbTransferProd default_wrapper{};
 
-    UsbTransferWrapper& usb_wrapper;
+    const UsbTransferWrapper* usb_wrapper;
 };
