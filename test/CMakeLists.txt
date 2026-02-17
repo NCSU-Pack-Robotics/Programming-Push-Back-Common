@@ -19,9 +19,7 @@ add_executable(TestSuite  # Create test exec
         SerialHandlerTest.cc
 )
 
-if (GTEST)
-    add_compile_definitions(GTEST)
-endif()
+add_compile_definitions(GTEST)
 
 target_link_libraries(  # Link tests with source files and test framework
         TestSuite

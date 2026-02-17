@@ -51,12 +51,12 @@ SerialHandler::SerialHandler(const UsbTransferWrapper* usb_wrapper) :
             // Since this is output, line_coding_bytes will not be modified by libusb_control_transfer
             libusb_control_transfer(
                 handle, LIBUSB_RECIPIENT_INTERFACE | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_ENDPOINT_OUT,
-                SET_LINE_CODING, 0, VEX_USB_COMMUNICATIONS_INTERFACE_NUMBER, line_coding_bytes,
+                SET_LINE_CODING, 0, VEX_USB_COMMUNICATIONS_INTERFACE_NUMBER, const_cast<unsigned char*>(line_coding_bytes),
                 sizeof(line_coding_bytes), 0);
 
             libusb_control_transfer(
                 handle, LIBUSB_RECIPIENT_INTERFACE | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_ENDPOINT_OUT,
-                SET_LINE_CODING, 0, VEX_USB_USER_INTERFACE_NUMBER, line_coding_bytes, sizeof(line_coding_bytes), 0);
+                SET_LINE_CODING, 0, VEX_USB_USER_INTERFACE_NUMBER, const_cast<unsigned char*>(line_coding_bytes), sizeof(line_coding_bytes), 0);
             break;
 
         }

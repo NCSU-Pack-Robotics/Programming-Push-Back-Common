@@ -46,7 +46,7 @@ TEST(SerialHandlerTest, ReceiveLargeSplit) {
     UsbTransferMock usb_mock;
     SerialHandler handler{&usb_mock}; // create a serial handler using the mock usb class
 
-    std::array<char, MAX_PACKET_SIZE> large_data{}; // must be < MAX_PACKET_SIZE as defined in SerialHandler
+    std::array<char, SerialHandler::MAX_PACKET_SIZE> large_data{}; // must be < MAX_PACKET_SIZE as defined in SerialHandler
     // create some large test data with a few values to test for later
     large_data[187] = 'a';
     large_data[200] = 'b';
