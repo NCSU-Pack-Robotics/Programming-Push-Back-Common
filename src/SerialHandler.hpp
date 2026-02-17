@@ -62,6 +62,14 @@ constexpr int MAX_LIBUSB_PACKET_SIZE = 512;
 
 /** The maximum packet size that we can use for our packets. */
 constexpr size_t MAX_PACKET_SIZE = 1024;
+/** The maximum packet that can be sent is MAX_PACKET_SIZE, but the total is higher
+* to account for the increased size from cobs encoding
+* - +2 bytes from the start and end byte
+* - +5 bytes from ceil(1024 / 254). See Utils::cobs_encode for more details
+* TODO: In the future it may be better to make the buffer dynamically sized to avoid this confusion
+*/
+constexpr size_t MAX_ENCODED_PACKET_SIZE = 1024 + 2 + 5;
+
 
 /** The request ID for setting the line coding over the USB control endpoint. */
 constexpr int SET_LINE_CODING = 0x20;
@@ -161,7 +169,7 @@ private:
     std::array<std::function<void(SerialHandler& serial_handler, const Packet&)>, PacketIds::LENGTH> listeners;
 
     /** An array of bytes that stores the data from receiving packets. Used temporarily between calls to libusb_block_transfer when receiving */
-    unsigned char buffer[MAX_PACKET_SIZE]{};
+    unsigned char buffer[MAX_ENCODED_PACKET_SIZE]{};
     /** The index in the buffer array where the next read data should be placed. */
     ssize_t next_write_index = 0;
 };

@@ -1,12 +1,10 @@
 #include "SerialHandler.hpp"
 
-#include <cmath>
 #include <cstring>
-#include <iostream>
-#include <poll.h>
 #include <optional>
 #include <unistd.h>
 #include <vector>
+#include <cassert>
 
 SerialHandler::SerialHandler()
 #if PI
@@ -82,6 +80,8 @@ SerialHandler::~SerialHandler() {
 void SerialHandler::send(const Packet& packet) {
     std::vector<uint8_t> data_to_send = packet.serialize();
 
+    assert(data_to_send.size() <= MAX_PACKET_SIZE && "Cannot send a packet with size greater than max packet size!");
+
     // Frame the packet using COBS
     std::optional<std::vector<uint8_t>> encoded = Utils::cobs_encode(data_to_send);
     if (!encoded.has_value())
@@ -100,17 +100,6 @@ void SerialHandler::send(const Packet& packet) {
 
 #if BRAIN
 bool SerialHandler::try_receive() {
-    pollfd requests{STDIN_FILENO, POLLIN, 0}; // poll for input events
-    int num_events = poll(&requests, 1, 0); // returns -1 for error, 0 for timeout, otherwise amount polled
-
-    if (num_events <= 0) {
-        if (num_events == -1) {
-            // do something with the error
-        }
-        return false;
-    }
-
-    // could check if request event matches POLLIN, but its the only one we request so it has to match
     ssize_t num_read = read(STDIN_FILENO, this->buffer + this->next_write_index, MAX_LIBUSB_PACKET_SIZE);
 
     if (num_read <= 0) {
@@ -164,7 +153,7 @@ void SerialHandler::receive() {
         #endif
 
         this->next_write_index += num_read;
-        if (this->next_write_index >= MAX_PACKET_SIZE) {
+        if (this->next_write_index >= MAX_ENCODED_PACKET_SIZE) {
             this->next_write_index = 0;
             continue;
         }
@@ -197,6 +186,9 @@ void SerialHandler::decode_packet(const unsigned char* packet_end) {
     const uint8_t* ptr = decoded->data();
     Packet received_packet{received_header, ptr + sizeof(received_header),
                                  decoded->size() - sizeof(received_header)};
+
+    // if the packet id does not exist, discard the packet
+    if (received_packet.get_id() >= PacketIds::LENGTH) return;
 
     if (const auto& fn = this->listeners[received_header.packet_id])
     {
