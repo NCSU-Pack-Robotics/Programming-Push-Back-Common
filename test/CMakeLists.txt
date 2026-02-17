@@ -16,12 +16,14 @@ enable_testing()
 add_executable(TestSuite  # Create test exec
         PacketTest.cc
         CobsTest.cc
+        SerialHandlerTest.cc
 )
 
 target_link_libraries(  # Link tests with source files and test framework
         TestSuite
         Programming_Push_Back_Common_lib
         GTest::gtest_main
+        GTest::gmock
         ${LIBUSB_LIBRARIES}
 )
 

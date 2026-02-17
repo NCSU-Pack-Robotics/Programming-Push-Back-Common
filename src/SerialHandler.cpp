@@ -6,10 +6,11 @@
 #include <vector>
 #include <cassert>
 
-SerialHandler::SerialHandler()
+SerialHandler::SerialHandler(UsbTransferWrapper& usb_wrapper) :
 #if PI
-    : device_handle(nullptr)
+    device_handle(nullptr),
 #endif
+usb_wrapper(usb_wrapper)
 {
 #if PI
     // Initialize the libusb context. We pass nullptr as the context to use the global default one.
@@ -137,7 +138,7 @@ void SerialHandler::receive() {
         // We read to buffer + an offset in case the packet we are reading spans multiple libusb packets
 
         #if PI
-        const int res = libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN,
+        const int res = usb_wrapper.libusb_bulk_transfer(this->device_handle, VEX_USB_USER_DATA_ENDPOINT_IN,
                                        this->buffer + this->next_write_index, MAX_LIBUSB_PACKET_SIZE, &num_read, 0);
         if (res)
             printf("Error: %s\n", libusb_error_name(res));

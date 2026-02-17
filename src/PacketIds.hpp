@@ -8,6 +8,7 @@ namespace PacketIds
         OPTICAL,
         INITIALIZE_OPTICAL,
         INITIALIZE_OPTICAL_COMPLETE,
+        TEXT,
         LENGTH // Used to get the amount of packet ids at compile time
     };
 }
