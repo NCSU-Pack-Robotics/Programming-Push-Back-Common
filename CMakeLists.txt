@@ -51,4 +51,12 @@ target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCL
 # Use this to build on a normal computer
 target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
 
+include(GoogleTest)
+gtest_discover_tests(TestSuite DISCOVERY_MODE PRE_TEST)
+
+target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
+
+# Use this to build on a normal computer
+target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
+
 add_subdirectory(test/)
