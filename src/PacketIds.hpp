@@ -1,10 +1,8 @@
 #pragma once
 #include <cstdint>
 
-namespace PacketIds
-{
-    enum PacketIds : uint8_t
-    {
+namespace PacketIds {
+    enum PacketIds : uint8_t {
         OPTICAL,
         INITIALIZE_OPTICAL,
         INITIALIZE_OPTICAL_COMPLETE,

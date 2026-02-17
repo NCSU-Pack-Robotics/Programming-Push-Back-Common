@@ -4,8 +4,7 @@ Packet::Packet(Header header, const uint8_t* data, size_t length) : data(length)
     memcpy(this->data.data(), data, length);
 }
 
-std::vector<uint8_t> Packet::serialize() const
-{
+std::vector<uint8_t> Packet::serialize() const {
     // Create enough space to store the entire packet
     std::vector<uint8_t> data_to_send(sizeof(Header) + this->data.size());
 
@@ -16,7 +15,6 @@ std::vector<uint8_t> Packet::serialize() const
     return data_to_send;
 }
 
-uint8_t Packet::get_id() const
-{
+uint8_t Packet::get_id() const {
     return this->header.packet_id;
 }

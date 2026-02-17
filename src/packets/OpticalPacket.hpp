@@ -6,8 +6,7 @@
 /**
  * A packet containing data from the optical sensor.
  */
-class OpticalPacket : public Packet
-{
+class OpticalPacket : public Packet {
 public:
     static constexpr uint8_t id = PacketIds::OPTICAL;
 

@@ -4,8 +4,7 @@
 #include <vector>
 #include <optional>
 
-namespace Utils
-{
+namespace Utils {
     /** Encodes an array of bytes and returns the cobs encoding of it, or nullopt if it fails for any reason. */
     std::optional<std::vector<uint8_t>> cobs_encode(const std::vector<uint8_t>& data);
 
