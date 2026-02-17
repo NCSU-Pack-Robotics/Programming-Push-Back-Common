@@ -1,6 +1,6 @@
-#include "utils.hpp"
+#include "Utils.hpp"
 
-std::optional<std::vector<uint8_t>> cobs_encode(const std::vector<uint8_t>& data) {
+std::optional<std::vector<uint8_t>> Utils::cobs_encode(const std::vector<uint8_t>& data) {
     if (data.empty()) return std::nullopt;
 
     std::vector<uint8_t> output;
@@ -37,16 +37,19 @@ std::optional<std::vector<uint8_t>> cobs_encode(const std::vector<uint8_t>& data
     return output;
 }
 
-std::optional<std::vector<uint8_t>> cobs_decode(const std::vector<uint8_t>& data) {
+std::optional<std::vector<uint8_t>> Utils::cobs_decode(const std::vector<uint8_t>& data) {
     if (data.empty()) return std::nullopt;
 
-    std::vector<uint8_t> output;
-    output.resize(data.size() - 1);
+    std::vector<uint8_t> output(data.size() - 1);
 
     int output_index = 0;
-    int next_marker_index = data[0];
+    int next_marker_index = data[0]; // get the next marker, which is always the first element
     bool was_block_marker = (data[0] == 0xFF);
     // Block markers are special because they don't have a zero at the position they mark
+
+    // Note: Jumping directly to marker indexes and memcpying the data ranges into output would be
+    // more efficient, but this does not matter for our usage for now, especially since most
+    // of our packets are very small and full of zeros
 
     for (int i = 1; i < data.size(); i++) {
         if (i == next_marker_index) {
@@ -64,24 +67,4 @@ std::optional<std::vector<uint8_t>> cobs_decode(const std::vector<uint8_t>& data
     output.resize(output_index);
 
     return output;
-}
-
-
-uint16_t compute_twos_sum(const uint8_t* data, const size_t length) {
-    uint16_t sum = 0;  // The running sum
-    for (size_t i = 0; i < length; i += 2) {
-        // Grab the first byte
-        uint16_t word = data[i];
-
-        // Create a 16-bit word from two bytes
-        if (i + 1 < length) {  // If there's a second byte
-            word = (word << 8) | data[i + 1]; // Combine two bytes into one word
-        } else {  // If there's an odd byte
-            word <<= 8; // Pad with 0s
-        }
-
-        sum += word;  // Two's complement addition
-    }
-
-    return sum; // Return the sum
 }

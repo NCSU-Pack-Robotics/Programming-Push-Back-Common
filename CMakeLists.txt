@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Find relevent files
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS *.cpp)
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS *.hpp)
-file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS ./test/*.cc)
 
 # Exclude build and external directories from source/header globs
 list(FILTER SRC_FILES EXCLUDE REGEX ".*/cmake-build-.*|.*/_deps/.*|.*/CMakeFiles/.*")
@@ -27,26 +26,30 @@ add_library(Programming_Push_Back_Common_lib STATIC
     ${HEADER_FILES}
 )
 
+# This allows other projects using this library to reference anything in the src directory without needing a full reference
+target_include_directories(Programming_Push_Back_Common_lib PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+if (BRAIN)
+    add_compile_definitions(BRAIN)
+endif()
+if (PI)
+    add_compile_definitions(PI)
+endif()
+
 ####################################################
 
-# Get the GTEST framework
-include(FetchContent)
-FetchContent_Declare(
-    googletest
-    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-    DOWNLOAD_EXTRACT_TIMESTAMP true
-)
-FetchContent_MakeAvailable(googletest)
+# Need to: sudo apt-get install pkg-config  libusb-1.0-0-dev
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 
-enable_testing()
-add_executable(TestSuite  # Create test exec
-    ${TEST_FILES}
-)
-target_link_libraries(  # Link tests with source files and test framework
-    TestSuite
-    Programming_Push_Back_Common_lib
-    GTest::gtest_main
-)
+# These links and includes need to be PUBLIC so that projects using this library also have access to the included libraries
+
+target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
+
+# Use this to build on a normal computer
+target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
 
 include(GoogleTest)
 gtest_discover_tests(TestSuite DISCOVERY_MODE PRE_TEST)
