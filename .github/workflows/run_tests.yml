@@ -1,0 +1,22 @@
+name: Compile and run gtest tests
+on: [push]
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Libusb
+        run: sudo apt-get install pkg-config libusb-1.0-0-dev
+
+      - name: Configure CMake Project
+        run: cmake -S . -B build -DPI=1 -DGTEST=1
+
+      - name: Compile Project
+        run: cmake --build build
+
+      - name: Run gtest
+        run: ./build/test/TestSuite
