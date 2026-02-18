@@ -9,6 +9,8 @@
 #include "Buffer.hpp"
 #include "Packet.hpp"
 
+
+#if PI
 // helper methods used for mocking usb methods in gtest
 class UsbTransferWrapper {
 public:
@@ -27,6 +29,7 @@ public:
         return ::libusb_bulk_transfer(dev_handle, endpoint, data, length, transferred, timeout);
     }
 };
+#endif
 
 class SerialHandler {
 public:
@@ -106,7 +109,11 @@ public:
 
 
     /** Constructs the serial handler. Leave the default argument unless you want to use the gtest usb wrappers */
-    SerialHandler(const UsbTransferWrapper* usb_wrapper = &default_wrapper);
+    SerialHandler(
+#if PI
+        const UsbTransferWrapper* usb_wrapper = &default_wrapper
+#endif
+        );
 
     /** Cleans up the SerialHandler, closing the libusb device handle if running on the pi. */
     ~SerialHandler();
@@ -193,7 +200,8 @@ private:
     /** The index in the buffer array where the next read data should be placed. */
     ssize_t next_write_index = 0;
 
+#if PI
     static constexpr UsbTransferProd default_wrapper{};
-
     const UsbTransferWrapper* usb_wrapper;
+#endif
 };

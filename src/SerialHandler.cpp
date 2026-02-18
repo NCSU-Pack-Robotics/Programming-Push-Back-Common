@@ -6,11 +6,16 @@
 #include <vector>
 #include <cassert>
 
-SerialHandler::SerialHandler(const UsbTransferWrapper* usb_wrapper) :
+SerialHandler::SerialHandler(
 #if PI
-    device_handle(nullptr),
+    const UsbTransferWrapper* usb_wrapper
 #endif
+    )
+#if PI
+    :
+    device_handle(nullptr),
     usb_wrapper(usb_wrapper)
+#endif
 {
 #if PI
     // Initialize the libusb context. We pass nullptr as the context to use the global default one.
