@@ -83,6 +83,10 @@ SerialHandler::~SerialHandler() {
 #endif
 }
 
+
+// TODO: To be safe, sent packets should begin with a null byte to end the previous data, in the case tha theres unknown data
+// before it. It also couldn't hurt to add a small set of signature bytes to prefix a packet, to prevent junk data
+// having the chance to be a valid packet id and pollute the buffers
 void SerialHandler::send(const Packet& packet) {
     std::vector<uint8_t> data_to_send = packet.serialize();
 
@@ -159,6 +163,9 @@ void SerialHandler::receive() {
         }
         #endif
 
+
+
+        // Since we have to read 512 bytes each libusb call, we need to make sure there is always 512 bytes available in the buffer
         this->next_write_index += num_read;
         if (this->next_write_index >= MAX_ENCODED_PACKET_SIZE) {
             this->next_write_index = 0;

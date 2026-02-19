@@ -197,8 +197,13 @@ private:
     /** An array where the indices of the array correspond to the packet id whose listener is stored there */
     std::array<std::function<void(SerialHandler& serial_handler, const Packet&)>, PacketIds::LENGTH> listeners;
 
-    /** An array of bytes that stores the data from receiving packets. Used temporarily between calls to libusb_block_transfer when receiving */
-    unsigned char buffer[MAX_ENCODED_PACKET_SIZE]{};
+    /** An array of bytes that stores the data from receiving packets. Used temporarily between calls to libusb_block_transfer when receiving
+     * This buffer needs to be large enough to store (MAX_ENCODED_PACKET_SIZE - 1) bytes + the amount of bytes being read in each IO call.
+     * If a full MAX_ENCODED_PACKET_SIZE is read, it will be decoded and removed from the buffer before the next receive call.
+     * In the worst case, there will be 1 fewer bytes sent, meaning we need to store them until we read IO again, and on each IO call there needs to
+     * be room for however many bytes we read.
+     */
+    unsigned char buffer[MAX_ENCODED_PACKET_SIZE - 1 + MAX_LIBUSB_PACKET_SIZE]{};
     /** The index in the buffer array where the next read data should be placed. */
     ssize_t next_write_index = 0;
 

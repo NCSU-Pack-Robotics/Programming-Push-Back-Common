@@ -142,6 +142,52 @@ TEST(SerialHandlerTest, ReceiveMultiplePacketsAtOnce) {
     EXPECT_EQ(handler.pop_latest<OpticalPacket>(), std::nullopt);
 }
 
+// test that sending a ton of data does not overflow the internal packet buffer
+TEST(SerialHandlerTest, OverflowBuffer) {
+    UsbTransferMock usb_mock;
+    SerialHandler handler{&usb_mock}; // create a serial handler using the mock usb class
+
+
+    // add a real packet at the end to see if it gets decoded
+    auto real_packet_bytes = OpticalPacket{1, 2, 3}.serialize();
+    auto real_encoded_bytes = Utils::cobs_encode(real_packet_bytes);
+    constexpr size_t data_size = 100000;
+    size_t total_size = data_size + 1 + real_encoded_bytes->size();
+    auto* large_data = new uint8_t[total_size];
+
+    // Fill with 100, which is not a valid packet id so it doesnt get added to the buffer
+    std::memset(large_data, 100, data_size); // make the data all 1's so it doesnt contain 0's. so receive keeps triggering libusb_bulk_transfer
+    std::memcpy(large_data + data_size + 1, real_encoded_bytes->data(), real_encoded_bytes->size());
+    unsigned int total_bytes_sent{};
+
+
+    int call_times = std::ceil(static_cast<double>(total_size) / SerialHandler::MAX_LIBUSB_PACKET_SIZE);
+
+    EXPECT_CALL(usb_mock, libusb_bulk_transfer)
+        .Times(call_times)
+        .WillRepeatedly([&large_data, &total_bytes_sent, total_size](libusb_device_handle *dev_handle,
+        unsigned char endpoint, unsigned char *data, int length,
+        int *transferred, unsigned int timeout) -> int {
+            int bytes_sent = std::min<int>(length, total_size - total_bytes_sent);
+            std::memcpy(data, large_data + total_bytes_sent, bytes_sent);
+
+            total_bytes_sent += bytes_sent;
+            if (transferred) *transferred = bytes_sent;
+            return 0;
+        });
+
+
+    handler.receive(); // first receive will call libusb_bulk_transfer multiple times until a null is found
+    handler.receive(); // this call will find the test optical packet at the end of the buffer
+    auto packet = handler.pop_latest<OpticalPacket>();
+    ASSERT_NE(packet, std::nullopt) << "Failed to find optical packet";
+
+    EXPECT_EQ(packet->get_data<OpticalPacket>().x, 1);
+    EXPECT_EQ(packet->get_data<OpticalPacket>().y, 2);
+    EXPECT_EQ(packet->get_data<OpticalPacket>().heading, 3);
+
+    delete[] large_data;
+}
 
 // TODO:
 // test that callbacks work

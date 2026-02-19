@@ -25,7 +25,7 @@ public:
     /** Sets the maximum size of the dequeue. NOTE: This does not modify the size of the buffer until the next element is added. */
     void set_max_size(size_t size);
 
-    /** Pops and returns the latest packet from the dequeue. Returns nullopt if the dequeue is empty */
+    /** Pops and returns the latest packet from the dequeue. This is the item at the END of the queue. Returns nullopt if the dequeue is empty */
     std::optional<Packet> pop_latest();
 
     /** Returns the size of the dequeue */
