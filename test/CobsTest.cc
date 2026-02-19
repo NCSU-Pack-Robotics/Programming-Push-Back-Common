@@ -91,3 +91,31 @@ TEST(CobsTest, EncodeHasOnlyOneDelimiter) {
     // test that the last byte is a null delimiter
     EXPECT_EQ(encoded->at(i), 0x00);
 }
+
+// test that decoding data where the start marker (distance until first zero) is beyond the bounds of the array fails
+TEST(CobsTest, DecodingStartIndexTooBig) {
+    // first zero is 50 indices past index 0, out of bounds
+    std::vector<uint8_t> encoded{50, 1, 2, 3};
+
+    EXPECT_EQ(Utils::cobs_decode(encoded), std::nullopt);
+}
+
+// test that decoding data where a marker somewhere within the bytes that has a distance beyond the bounds of the array fails
+TEST(CobsTest, DecodingMiddleIndexTooBig) {
+    // first index tells us first zero is in 3 spots, so at index 3, that index tells us there is another zero 3 indexes
+    // from there, at index 6, which is out of bounds
+    std::vector<uint8_t> encoded{3, 1, 2, 3, 2};
+
+    EXPECT_EQ(Utils::cobs_decode(encoded), std::nullopt);
+}
+
+// test that decoding zeros fails, cobs decoding can not be given any zeros
+TEST(CobsTest, DecodingZeros) {
+    std::vector<uint8_t> encoded{0, 0, 0, 0};
+
+    EXPECT_EQ(Utils::cobs_decode(encoded), std::nullopt);
+
+    std::vector<uint8_t> encoded2{1, 1, 1, 0};
+
+    EXPECT_EQ(Utils::cobs_decode(encoded2), std::nullopt);
+}

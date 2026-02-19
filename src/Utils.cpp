@@ -38,7 +38,16 @@ std::optional<std::vector<uint8_t>> Utils::cobs_encode(const std::vector<uint8_t
 }
 
 std::optional<std::vector<uint8_t>> Utils::cobs_decode(const std::vector<uint8_t>& data) {
-    if (data.empty()) return std::nullopt;
+    // Encoded data must have at east 2 elements.
+    // If it has only 1, that elements says where the next zero is, but that marker is not supported to be 0,
+    // so it must be 1 but there are no other elements in the array
+    // This depends on cobs implementation, but follows what our cobs_encode method produces
+    if (data.size() <= 1) return std::nullopt;
+    // The start marker cannot be greater than the size. If it is equal to the size, that means the '0' is after the end of the
+    // array, so the entire array is preserved. Anything more than that is not allowed.
+    if (data[0] > data.size()) return std::nullopt;
+    // Encoded cobs bytes cannot contain zeros
+    if (data[0] == 0) return std::nullopt;
 
     std::vector<uint8_t> output(data.size() - 1);
 
@@ -52,12 +61,15 @@ std::optional<std::vector<uint8_t>> Utils::cobs_decode(const std::vector<uint8_t
     // of our packets are very small and full of zeros
 
     for (int i = 1; i < data.size(); i++) {
+        if (data[i] == 0) return std::nullopt; // cobs encoded bytes cannot contains zeros
         if (i == next_marker_index) {
             if (!was_block_marker) {
                 output[output_index++] = 0x00;
             }
 
             next_marker_index = i + data[i];
+            // same reason we return early if data[0] is > data.size()
+            if (next_marker_index > data.size()) return std::nullopt;
             was_block_marker = (data[i] == 0xFF);
         }
         else {
