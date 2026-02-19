@@ -3,15 +3,15 @@
 #include <array>
 
 #include "Packet.hpp"
-
+#include "SerialHandler.hpp"
 
 class TextPacket : public Packet {
 public:
     static constexpr uint8_t id = PacketIds::TEXT;
 
     struct Data {
-        std::array<char, SerialHandler::MAX_PACKET_SIZE> text;
+        std::array<char, SerialHandler::MAX_PACKET_DATA_SIZE> text;
     };
 
-    TextPacket(const std::array<char, SerialHandler::MAX_PACKET_SIZE>& arr) : Packet(Header{id}, Data{arr}) {};
+    TextPacket(const std::array<char, SerialHandler::MAX_PACKET_DATA_SIZE>& arr) : Packet(Header{id}, Data{arr}) {};
 };

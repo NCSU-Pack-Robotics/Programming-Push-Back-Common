@@ -92,6 +92,8 @@ public:
     * TODO: In the future it may be better to make the buffer dynamically sized to avoid this confusion
     */
     static constexpr size_t MAX_ENCODED_PACKET_SIZE = 1024 + 2 + 5;
+    /** The max size in bytes that the data of a packet can be so that once its encoded it doesn't go over MAX_PACKET_SIZE */
+    static constexpr size_t MAX_PACKET_DATA_SIZE = MAX_PACKET_SIZE - sizeof(Header);
 
 
     /** The request ID for setting the line coding over the USB control endpoint. */

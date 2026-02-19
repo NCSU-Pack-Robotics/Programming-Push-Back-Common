@@ -139,7 +139,8 @@ void SerialHandler::receive() {
         || it - this->buffer >= this->next_write_index) { // If the null byte that gets found is past the amount of data we actually read
 
         int num_read = 0;
-        // Reading the MAX_PACKET_SIZE is important so that libusb does not throw an error for not having enough room for the data.
+        // Reading the MAX_PACKET_SIZE is important so that libusb does not throw an error for not having enough room for the data (and cause undefined behavior)
+        // https://libusb.sourceforge.io/api-1.0/libusb_packetoverflow.html
         // We read to buffer + an offset in case the packet we are reading spans multiple libusb packets
 
         #if PI
@@ -173,15 +174,15 @@ void SerialHandler::receive() {
 }
 
 void SerialHandler::decode_packet(const unsigned char* packet_end) {
-    const int packet_length = packet_end - this->buffer + 1;
+    const int packet_length = packet_end - this->buffer; // length not including the null delimiter
     std::vector<uint8_t> bytes(packet_length);
 
     // Copy the bytes into the bytes vector, excluding the null delimiter
-    memcpy(bytes.data(), this->buffer, packet_length - 1);
+    memcpy(bytes.data(), this->buffer, packet_length);
 
     // In case we read multiple packets in 1 libusb packet, move the data between the end of our current packet, and the total bytes read, to the beginning of the buffer
-    memmove(this->buffer, this->buffer + packet_length, this->next_write_index - packet_length);
-    this->next_write_index -= packet_length;
+    memmove(this->buffer, this->buffer + packet_length + 1, this->next_write_index - packet_length);
+    this->next_write_index -= (packet_length + 1);
 
     const std::optional<std::vector<uint8_t>> decoded = Utils::cobs_decode(bytes);
     if (!decoded.has_value()) return; // If we fail to decode, ignore the packet
