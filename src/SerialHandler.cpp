@@ -204,10 +204,14 @@ void SerialHandler::decode_packet(const unsigned char* packet_end) {
     // if the packet id does not exist, discard the packet
     if (received_packet.get_id() >= PacketIds::LENGTH) return;
 
-    if (const auto& fn = this->listeners[received_header.packet_id])
-    {
+    mutex.lock();
+    // get the function before while locked
+    const auto& fn = this->listeners[received_header.packet_id];
+    this->buffers[received_header.packet_id].add(received_packet);
+    mutex.unlock();
+
+    // call the function while NOT locked, so a user doesn't call a method like pop_latest which requires a lock and causes a deadlock
+    if (fn) { // test if function is valid
         fn(*this, received_packet);
     }
-
-    this->buffers[received_header.packet_id].add(std::move(received_packet));
 }

@@ -142,21 +142,18 @@ public:
      */
     void receive();
 
-    template <typename T>
-    Buffer get_buffers() {
-        return this->buffers[T::id];
-    }
-
     /**
      * Returns and remove the last received packet from the appropriate buffer.
      * @return The removed packet.
-     */
+    */
     template <typename T>
     std::optional<Packet> pop_latest()
     {
-        return this->get_buffers<T>().pop_latest();
+        mutex.lock();
+        auto packet = this->buffers[T::id].pop_latest();
+        mutex.unlock();
+        return packet;
     }
-
 
     /**
      * Adds an event listener to the list. There can only be one listener for each packet id.
@@ -165,8 +162,13 @@ public:
     template <typename T>
     bool add_listener(const std::function<void(SerialHandler& serial_handler, const Packet&)>& listener)
     {
-        if (this->listeners[T::id]) return false;
+        mutex.lock();
+        if (this->listeners[T::id]) {
+            mutex.unlock();
+            return false;
+        }
         this->listeners[T::id] = listener;
+        mutex.unlock();
         return true;
     }
 
@@ -177,11 +179,14 @@ public:
     template <typename T>
     bool remove_listener()
     {
+        mutex.lock();
         if (this->listeners[T::id])
         {
             this->listeners[T::id] = nullptr; // Put the function in an empty state
+            mutex.unlock();
             return true;
         }
+        mutex.unlock();
         return false;
     }
 
@@ -192,11 +197,21 @@ private:
      */
     void decode_packet(const unsigned char* packet_end);
 
-    #if PI
+#if PI
     /** A libusb device handle. */
     libusb_device_handle* device_handle;
-    #endif
+#endif
 
+
+    // A mutex used for synchronization of `buffers` and `listeners`. A user should be able to use methods that retrieve packets from the
+    // buffers, or add/remove listeners while also calling receive on another thread.
+#if PI
+    using Mutex = std::mutex;
+#elif BRAIN
+    using Mutex = pros::Mutex;
+#endif
+
+    Mutex mutex;
 
 
     /** An array where the indices of the array correspond to the packet id whose listener is stored there */

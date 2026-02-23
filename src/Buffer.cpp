@@ -13,7 +13,7 @@ std::optional<Packet> Buffer::pop_latest() {
     return std::move(packet);
 }
 
-void Buffer::add(Packet&& data) {
+void Buffer::add(const Packet& data) {
     if (this->data.size() > max_size) {
         this->data.erase(this->data.begin(), this->data.begin() + (this->data.size() - this->max_size));
     }
