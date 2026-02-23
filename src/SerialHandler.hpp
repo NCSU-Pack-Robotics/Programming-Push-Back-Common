@@ -142,6 +142,11 @@ public:
      */
     void receive();
 
+    template <typename T>
+    Buffer get_buffers() {
+        return this->buffers[T::id];
+    }
+
     /**
      * Returns and remove the last received packet from the appropriate buffer.
      * @return The removed packet.
@@ -149,8 +154,9 @@ public:
     template <typename T>
     std::optional<Packet> pop_latest()
     {
-        return this->buffers[T::id].pop_latest();
+        return this->get_buffers<T>().pop_latest();
     }
+
 
     /**
      * Adds an event listener to the list. There can only be one listener for each packet id.
@@ -191,8 +197,7 @@ private:
     libusb_device_handle* device_handle;
     #endif
 
-    /** An array where the indices of the array correspond to the packet id whose buffer is stored there */
-    std::array<Buffer, PacketIds::LENGTH> buffers;
+
 
     /** An array where the indices of the array correspond to the packet id whose listener is stored there */
     std::array<std::function<void(SerialHandler& serial_handler, const Packet&)>, PacketIds::LENGTH> listeners;
@@ -211,4 +216,8 @@ private:
     static constexpr UsbTransferProd default_wrapper{};
     const UsbTransferWrapper* usb_wrapper;
 #endif
+
+protected:
+    /** An array where the indices of the array correspond to the packet id whose buffer is stored there */
+    std::array<Buffer, PacketIds::LENGTH> buffers;
 };
