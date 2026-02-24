@@ -33,6 +33,8 @@ target_include_directories(Programming_Push_Back_Common_lib PUBLIC
 
 if (BRAIN)
     add_compile_definitions(BRAIN)
+    # feels wrong to include dependencies specific to pros in common but idk how else to do this
+    target_include_directories(Programming_Push_Back_Common_lib PUBLIC ../../include/)
 endif()
 if (PI)
     add_compile_definitions(PI)

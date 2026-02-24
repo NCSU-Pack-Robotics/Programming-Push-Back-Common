@@ -8,6 +8,9 @@
 
 #include "Buffer.hpp"
 #include "Packet.hpp"
+#if BRAIN
+#include "api.h" // Needed to be able to use pros::Mutex
+#endif
 
 
 #if PI
