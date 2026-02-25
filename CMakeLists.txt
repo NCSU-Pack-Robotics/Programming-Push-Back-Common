@@ -4,6 +4,9 @@ project(Programming_Push_Back_Common)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
+option(TESTING "Include test code" OFF)
+
 # Find relevent files
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS *.cpp)
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS *.hpp)
@@ -37,18 +40,21 @@ if (BRAIN)
     target_include_directories(Programming_Push_Back_Common_lib PUBLIC ../../include/)
 endif()
 if (PI)
-    add_compile_definitions(PI)
+    target_compile_definitions(Programming_Push_Back_Common_lib PUBLIC PI)
+
+    # Need to: sudo apt-get install pkg-config  libusb-1.0-0-dev
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
+
+    # These links and includes need to be PUBLIC so that projects using this library also have access to the included libraries
+
+    target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
+    target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
 endif()
 
 ####################################################
 
-# Need to: sudo apt-get install pkg-config  libusb-1.0-0-dev
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 
-# These links and includes need to be PUBLIC so that projects using this library also have access to the included libraries
-
-target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
-target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
-
-add_subdirectory(test/)
+if (TESTING)
+    add_subdirectory(test/)
+endif ()
