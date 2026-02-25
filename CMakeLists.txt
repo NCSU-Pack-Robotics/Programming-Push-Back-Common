@@ -3,6 +3,11 @@ project(Programming_Push_Back_Common)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
+
+set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)
 
 # Find relevent files
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS *.cpp)
@@ -26,6 +31,28 @@ add_library(Programming_Push_Back_Common_lib STATIC
     ${HEADER_FILES}
 )
 
+# When not testing (i.e., building for VEX Brain), apply ARM-specific flags
+if (BRAIN AND NOT TESTING)
+    target_compile_options(Programming_Push_Back_Common_lib PRIVATE
+        -mcpu=cortex-a9
+        -mfpu=neon-fp16
+        -mfloat-abi=hard
+        -Os
+        -g
+        -mthumb
+        -ffunction-sections
+        -fdata-sections
+        -fdiagnostics-color
+        -funwind-tables
+        -D_POSIX_THREADS
+        -D_UNIX98_THREAD_MUTEX_ATTRIBUTES
+        -D_POSIX_TIMERS
+        -D_POSIX_MONOTONIC_CLOCK
+        -Wno-psabi
+        -Wno-deprecated-declarations
+    )
+endif()
+
 # This allows other projects using this library to reference anything in the src directory without needing a full reference
 target_include_directories(Programming_Push_Back_Common_lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -40,15 +67,13 @@ if (PI)
     add_compile_definitions(PI)
 endif()
 
-####################################################
+if (PI)
+    # Need to: sudo apt-get install pkg-config  libusb-1.0-0-dev
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 
-# Need to: sudo apt-get install pkg-config  libusb-1.0-0-dev
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
-
-# These links and includes need to be PUBLIC so that projects using this library also have access to the included libraries
-
-target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
-target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
+    target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
+    target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
+endif()
 
 add_subdirectory(test/)
