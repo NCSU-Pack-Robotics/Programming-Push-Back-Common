@@ -4,7 +4,6 @@ project(Programming_Push_Back_Common)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
 option(TESTING "Include test code" OFF)
 
 # Find relevent files
@@ -29,6 +28,28 @@ add_library(Programming_Push_Back_Common_lib STATIC
     ${HEADER_FILES}
 )
 
+# When not testing (i.e., building for VEX Brain), apply ARM-specific flags
+if (BRAIN AND NOT TESTING)
+    target_compile_options(Programming_Push_Back_Common_lib PRIVATE
+            -mcpu=cortex-a9
+            -mfpu=neon-fp16
+            -mfloat-abi=hard
+            -Os
+            -g
+            -mthumb
+            -ffunction-sections
+            -fdata-sections
+            -fdiagnostics-color
+            -funwind-tables
+            -D_POSIX_THREADS
+            -D_UNIX98_THREAD_MUTEX_ATTRIBUTES
+            -D_POSIX_TIMERS
+            -D_POSIX_MONOTONIC_CLOCK
+            -Wno-psabi
+            -Wno-deprecated-declarations
+    )
+endif()
+
 # This allows other projects using this library to reference anything in the src directory without needing a full reference
 target_include_directories(Programming_Push_Back_Common_lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -40,6 +61,7 @@ if (BRAIN)
     target_include_directories(Programming_Push_Back_Common_lib PUBLIC ../../include/)
 endif()
 if (PI)
+
     target_compile_definitions(Programming_Push_Back_Common_lib PUBLIC PI)
 
     # Need to: sudo apt-get install pkg-config  libusb-1.0-0-dev
@@ -53,7 +75,6 @@ if (PI)
 endif()
 
 ####################################################
-
 
 if (TESTING)
     add_subdirectory(test/)
