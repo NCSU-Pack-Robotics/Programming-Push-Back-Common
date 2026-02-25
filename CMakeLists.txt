@@ -61,7 +61,9 @@ if (BRAIN)
     target_include_directories(Programming_Push_Back_Common_lib PUBLIC ../../include/)
 endif()
 if (PI)
-    add_compile_definitions(PI)
+
+    target_compile_definitions(Programming_Push_Back_Common_lib PUBLIC PI)
+
     # Need to: sudo apt-get install pkg-config  libusb-1.0-0-dev
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
