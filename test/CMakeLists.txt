@@ -13,7 +13,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
-add_executable(TestSuite  # Create test exec
+set(TestSuite TestSuite_${PROJECT_NAME})
+add_executable(${TestSuite}  # Create test exec
         PacketTest.cc
         CobsTest.cc
         SerialHandlerTest.cc
@@ -22,14 +23,14 @@ add_executable(TestSuite  # Create test exec
 add_compile_definitions(GTEST)
 
 target_link_libraries(  # Link tests with source files and test framework
-        TestSuite
+        ${TestSuite}
         Programming_Push_Back_Common_lib
         GTest::gtest_main
         GTest::gmock
         ${LIBUSB_LIBRARIES}
 )
 
-target_include_directories(TestSuite PRIVATE ${LIBUSB_INCLUDE_DIRS})
+target_include_directories(${TestSuite} PRIVATE ${LIBUSB_INCLUDE_DIRS})
 
 include(GoogleTest)
-gtest_discover_tests(TestSuite DISCOVERY_MODE PRE_TEST)
+gtest_discover_tests(${TestSuite} DISCOVERY_MODE PRE_TEST)
