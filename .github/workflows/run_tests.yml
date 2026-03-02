@@ -13,10 +13,10 @@ jobs:
         run: sudo apt-get install pkg-config libusb-1.0-0-dev
 
       - name: Configure CMake Project
-        run: cmake -S . -B build -DPI=1 -DGTEST=1
+        run: cmake -S . -B build -DPI=1 -DTESTING=1
 
       - name: Compile Project
         run: cmake --build build
 
       - name: Run gtest
-        run: ./build/test/TestSuite
+        run: ./build/test/TestSuite_Programming_Push_Back_Common_Tests

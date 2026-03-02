@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(TESTING "Include test code" OFF)
+option(BRAIN "Code will run on a VEX Brain" OFF)
+option(PI "Code will run on a Raspberry Pi" ON)
 
 # Find relevent files
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS *.cpp)
