@@ -195,3 +195,4 @@ TEST(SerialHandlerTest, OverflowBuffer) {
 // test mocking the read method
 // test the SerialHandler constructor when vex brain doesnt exist and other errors
 // test the send method
+//    - sending large messages should work without messages being lost

@@ -160,6 +160,7 @@ public:
 
     /**
      * Adds an event listener to the list. There can only be one listener for each packet id.
+     * The listener runs within a receive call, so should be kept short.
      * @Returns True if it was successfully added, or false if a listener for that id already exists.
      */
     template <typename T>
