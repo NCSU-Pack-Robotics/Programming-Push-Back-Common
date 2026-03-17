@@ -3,6 +3,7 @@
 
 namespace PacketIds {
     enum PacketIds : uint8_t {
+        INITIALIZE_AUX,
         OPTICAL,
         INITIALIZE_OPTICAL,
         INITIALIZE_OPTICAL_COMPLETE,
