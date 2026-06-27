@@ -28,6 +28,7 @@ endforeach()
 add_library(Programming_Push_Back_Common_lib STATIC
     ${SRC_FILES}
     ${HEADER_FILES}
+        src/Comms/AbstractComm.hpp
 )
 
 # When not testing (i.e., building for VEX Brain), apply ARM-specific flags

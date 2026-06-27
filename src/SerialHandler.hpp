@@ -1,15 +1,19 @@
 #pragma once
 
-#include <cstddef>
 #include <functional>
 
+#include "AbstractComm.hpp"
 #include "Buffer.hpp"
 #include "Header.hpp"
 #include "Packet.hpp"
 
 class SerialHandler {
+    std::unique_ptr<AbstractComm> comm;
+
 public:
+    SerialHandler(std::unique_ptr<AbstractComm> comm) : comm(std::move(comm)) {}
     virtual ~SerialHandler() = default;
+
     /** The maximum packet size in bytes that is supported by the Vex Brain. This is a hardware limitation. It is
      * important to read at least this amount in bulk transfers to avoid errors. */
     static constexpr int MAX_LIBUSB_PACKET_SIZE = 512;
@@ -48,9 +52,9 @@ public:
     template <typename T>
     std::optional<Packet> pop_latest()
     {
-        mutex_lock();
+        comm->mutex_lock();
         auto packet = this->buffers[T::id].pop_latest();
-        mutex_unlock();
+        comm->mutex_unlock();
         return packet;
     }
 
@@ -62,13 +66,13 @@ public:
     template <typename T>
     bool add_listener(const std::function<void(SerialHandler& serial_handler, const Packet&)>& listener)
     {
-        mutex_lock();
+        comm->mutex_lock();
         if (this->listeners[T::id]) {
-            mutex_unlock();
+            comm->mutex_unlock();
             return false;
         }
         this->listeners[T::id] = listener;
-        mutex_unlock();
+        comm->mutex_unlock();
         return true;
     }
 
@@ -79,14 +83,14 @@ public:
     template <typename T>
     bool remove_listener()
     {
-        mutex_lock();
+        comm->mutex_lock();
         if (this->listeners[T::id])
         {
             this->listeners[T::id] = nullptr; // Put the function in an empty state
-            mutex_unlock();
+            comm->mutex_unlock();
             return true;
         }
-        mutex_unlock();
+        comm->mutex_unlock();
         return false;
     }
 private:
@@ -99,31 +103,11 @@ private:
      * This buffer needs to be large enough to store (MAX_ENCODED_PACKET_SIZE - 1) bytes + the amount of bytes being read in each IO call.
      * If a full MAX_ENCODED_PACKET_SIZE is read, it will be decoded and removed from the buffer before the next receive call.
      * In the worst case, there will be 1 fewer bytes sent, meaning we need to store them until we read IO again, and on each IO call there needs to
-     * be room for however many bytes we read.
-     */
+     * be room for however many bytes we read. */
     unsigned char buffer[MAX_ENCODED_PACKET_SIZE - 1 + MAX_LIBUSB_PACKET_SIZE]{};
     /** The index in the buffer array where the next read data should be placed. */
     size_t next_write_index = 0;
 
     /** An array where the indices of the array correspond to the packet id whose buffer is stored there */
     std::array<Buffer, PacketIds::LENGTH> buffers;
-
-    /** Reads data from somewhere into a buffer.
-     * This method is responsible for handling all errors related to reading.
-     * @param buf A pointer to where the data should be read to
-     * @param count The maximum amount of bytes to read.
-     * If count is zero this method should return 0 and perform no operation.
-     * @returns The number of bytes read. */
-    virtual size_t read(unsigned char* buf, size_t count) = 0;
-
-    /** Writes data from a buffer to somewhere.
-     * This method is responsible for handling all errors related to writing.
-     * @param buf A pointer to the data to write.
-     * @param count The amount of data to write from the buffer. */
-    virtual void write(unsigned char* buf, size_t count) = 0;
-protected:
-    /** Can be implemented to make the SerialHandler thread safe. */
-    virtual void mutex_lock() {};
-    /** Can be implemented to make the SerialHandler thread safe. */
-    virtual void mutex_unlock() {};
 };
