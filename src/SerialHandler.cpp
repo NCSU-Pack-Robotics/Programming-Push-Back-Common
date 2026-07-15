@@ -26,7 +26,7 @@ void SerialHandler::receive() {
     while (it == std::ranges::end(this->buffer) // If a null byte is not found in the buffer
         || it - this->buffer >= this->next_write_index) { // If the null byte that gets found is past the amount of data we actually read
 
-        size_t num_read = this->read(this->buffer + this->next_write_index, MAX_LIBUSB_PACKET_SIZE);
+        size_t num_read = comm->read(this->buffer + this->next_write_index, MAX_LIBUSB_PACKET_SIZE);
 
         // Since we have to read 512 bytes each libusb call, we need to make sure there is always 512 bytes available in the buffer
         this->next_write_index += num_read;
@@ -65,11 +65,11 @@ void SerialHandler::decode_packet(const unsigned char* packet_end) {
     // if the packet id does not exist, discard the packet
     if (received_packet.get_id() >= PacketIds::LENGTH) return;
 
-    this->mutex_lock();
+    comm->mutex_lock();
     // get the function before while locked
     const auto& fn = this->listeners[received_header.packet_id];
     this->buffers[received_header.packet_id].add(received_packet);
-    this->mutex_unlock();
+    comm->mutex_unlock();
 
     // call the function while NOT locked, so a user doesn't call a method like pop_latest which requires a lock and causes a deadlock
     if (fn) { // test if function is valid
