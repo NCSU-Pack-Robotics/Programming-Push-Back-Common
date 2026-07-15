@@ -2,6 +2,11 @@
 
 #include <cstddef>
 
+/**
+ * Used as an interface for communication. Every device our code compiles on has different ways of
+ * sending data different ways of handling concurrency. Therefore, this "interface" is intended to
+ * abstract some of the platform-specific dependencies.
+ */
 class AbstractComm {
 public:
     /** Reads data from somewhere into a buffer.
