@@ -72,8 +72,8 @@ if (PI)
 
     # These links and includes need to be PUBLIC so that projects using this library also have access to the included libraries
 
-#    target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
-#    target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
+    target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
+    target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
 endif()
 
 ####################################################
