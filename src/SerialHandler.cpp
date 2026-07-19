@@ -73,6 +73,6 @@ void SerialHandler::decode_packet(const unsigned char* packet_end) {
 
     // call the function while NOT locked, so a user doesn't call a method like pop_latest which requires a lock and causes a deadlock
     if (fn) { // test if function is valid
-        fn(*this, received_packet);
+        fn(received_packet);
     }
 }

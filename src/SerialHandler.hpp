@@ -64,7 +64,7 @@ public:
      * @Returns True if it was successfully added, or false if a listener for that id already exists.
      */
     template <typename T>
-    bool add_listener(const std::function<void(SerialHandler& serial_handler, const Packet&)>& listener)
+    bool add_listener(const std::function<void(const Packet&)>& listener)
     {
         comm->mutex_lock();
         if (this->listeners[T::id]) {
@@ -97,7 +97,7 @@ private:
     void decode_packet(const unsigned char* packet_end);
 
     /** An array where the indices of the array correspond to the packet id whose listener is stored there */
-    std::array<std::function<void(SerialHandler& serial_handler, const Packet&)>, PacketIds::LENGTH> listeners;
+    std::array<std::function<void(const Packet&)>, PacketIds::LENGTH> listeners;
 
     /** An array of bytes that stores the data from receiving packets. Used temporarily between calls to libusb_block_transfer when receiving
      * This buffer needs to be large enough to store (MAX_ENCODED_PACKET_SIZE - 1) bytes + the amount of bytes being read in each IO call.
