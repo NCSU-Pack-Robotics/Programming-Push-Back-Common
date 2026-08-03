@@ -1,6 +1,7 @@
 #include "SerialHandler.hpp"
 
 #include <cassert>
+#include <iostream>
 
 // TODO: To be safe, sent packets should begin with a null byte to end the previous data, in the case tha theres unknown
 // data
@@ -38,7 +39,6 @@ void SerialHandler::receive() {
         it = std::ranges::find(this->buffer, '\0');
     }
 
-    printf("Decoding packet\n");
     this->decode_packet(it);
 }
 

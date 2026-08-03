@@ -66,14 +66,8 @@ if (PI)
 
     target_compile_definitions(Programming_Push_Back_Common_lib PUBLIC PI)
 
-    # Need to: sudo apt-get install pkg-config  libusb-1.0-0-dev
+    # Need to: sudo apt-get install pkg-config
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
-
-    # These links and includes need to be PUBLIC so that projects using this library also have access to the included libraries
-
-    target_include_directories(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_INCLUDE_DIRS})
-    target_link_libraries(Programming_Push_Back_Common_lib PUBLIC ${LIBUSB_LIBRARIES})
 endif()
 
 ####################################################
