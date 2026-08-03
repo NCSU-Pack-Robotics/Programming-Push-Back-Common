@@ -17,7 +17,7 @@ void SerialHandler::send(const Packet& packet) {
         return;
 
     // Write the data to the serial connection
-
+    comm->write(encoded->data(), encoded->size());
 }
 
 void SerialHandler::receive() {
@@ -38,6 +38,7 @@ void SerialHandler::receive() {
         it = std::ranges::find(this->buffer, '\0');
     }
 
+    printf("Decoding packet\n");
     this->decode_packet(it);
 }
 

@@ -49,7 +49,7 @@ public:
      * Returns and remove the last received packet from the appropriate buffer.
      * @return The removed packet.
     */
-    template <typename T>
+    template <std::derived_from<Packet> T>
     std::optional<Packet> pop_latest()
     {
         comm->mutex_lock();
@@ -63,16 +63,19 @@ public:
      * The listener runs within a receive call, so should be kept short.
      * @Returns True if it was successfully added, or false if a listener for that id already exists.
      */
-    template <typename T>
+    template <std::derived_from<Packet> T>
     bool add_listener(const std::function<void(const Packet&)>& listener)
     {
+        printf("SerialHandler::add_listener()\n");
         comm->mutex_lock();
+        printf("Locked mutex\n");
         if (this->listeners[T::id]) {
             comm->mutex_unlock();
             return false;
         }
         this->listeners[T::id] = listener;
         comm->mutex_unlock();
+        printf("Unlocked mutex\n");
         return true;
     }
 
@@ -80,7 +83,7 @@ public:
      * Removes a listener from the list.
      * @Returns True if the listener was removed, or false if no listener exits with that id.
      */
-    template <typename T>
+    template <std::derived_from<Packet> T>
     bool remove_listener()
     {
         comm->mutex_lock();
