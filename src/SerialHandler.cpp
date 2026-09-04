@@ -1,6 +1,7 @@
 #include "SerialHandler.hpp"
 
 #include <cassert>
+#include <expected>
 #include <iostream>
 
 // TODO: To be safe, sent packets should begin with a null byte to end the previous data, in the case tha theres unknown
@@ -21,7 +22,7 @@ void SerialHandler::send(const Packet& packet) {
     comm->write(encoded->data(), encoded->size());
 }
 
-void SerialHandler::receive() {
+std::optional<Packet> SerialHandler::get_packet() {
     // Get a pointer to the first null byte in the buffer
     auto it = std::ranges::find(this->buffer, '\0');
     while (it == std::ranges::end(this->buffer) // If a null byte is not found in the buffer
@@ -39,10 +40,10 @@ void SerialHandler::receive() {
         it = std::ranges::find(this->buffer, '\0');
     }
 
-    this->decode_packet(it);
+    return this->decode_packet(it);
 }
 
-void SerialHandler::decode_packet(const unsigned char* packet_end) {
+std::optional<Packet> SerialHandler::decode_packet(const unsigned char* packet_end) {
     const int packet_length = packet_end - this->buffer; // length not including the null delimiter
     std::vector<uint8_t> bytes(packet_length);
 
@@ -54,7 +55,7 @@ void SerialHandler::decode_packet(const unsigned char* packet_end) {
     this->next_write_index -= (packet_length + 1);
 
     const std::optional<std::vector<uint8_t>> decoded = Utils::cobs_decode(bytes);
-    if (!decoded.has_value()) return; // If we fail to decode, ignore the packet
+    if (!decoded.has_value()) return std::nullopt; // If we fail to decode, ignore the packet
 
     // Decode the header
     Header received_header{};
@@ -64,16 +65,7 @@ void SerialHandler::decode_packet(const unsigned char* packet_end) {
                                  decoded->size() - sizeof(received_header)};
 
     // if the packet id does not exist, discard the packet
-    if (received_packet.get_id() >= PacketIds::LENGTH) return;
+    if (received_packet.get_id() >= PacketIds::LENGTH) return std::nullopt;
 
-    comm->mutex_lock();
-    // get the function before while locked
-    const auto& fn = this->listeners[received_header.packet_id];
-    this->buffers[received_header.packet_id].add(received_packet);
-    comm->mutex_unlock();
-
-    // call the function while NOT locked, so a user doesn't call a method like pop_latest which requires a lock and causes a deadlock
-    if (fn) { // test if function is valid
-        fn(received_packet);
-    }
+    return received_packet;
 }

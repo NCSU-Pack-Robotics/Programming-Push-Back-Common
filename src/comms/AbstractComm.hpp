@@ -23,10 +23,5 @@ public:
      * @param count The amount of data to write from the buffer. */
     virtual void write(unsigned char* buf, size_t count) = 0;
 
-    /** Can be implemented to make the SerialHandler thread safe. */
-    virtual void mutex_lock() {}
-    /** Can be implemented to make the SerialHandler thread safe. */
-    virtual void mutex_unlock() {}
-
     virtual ~AbstractComm() = default;
 };

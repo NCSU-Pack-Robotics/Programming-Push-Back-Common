@@ -43,64 +43,20 @@ public:
      * Note: It is possible that a packet fails to decode after being read, this function will return
      * regardless of the success of decoding.
      */
-    void receive();
-
-    /**
-     * Returns and remove the last received packet from the appropriate buffer.
-     * @return The removed packet.
-    */
     template <std::derived_from<Packet> T>
-    std::optional<Packet> pop_latest()
-    {
-        comm->mutex_lock();
-        auto packet = this->buffers[T::id].pop_latest();
-        comm->mutex_unlock();
-        return packet;
-    }
+    std::optional<typename T::Data> get_packet_data() {
 
-    /**
-     * Adds an event listener to the list. There can only be one listener for each packet id.
-     * The listener runs within a receive call, so should be kept short.
-     * @Returns True if it was successfully added, or false if a listener for that id already exists.
-     */
-    template <std::derived_from<Packet> T>
-    bool add_listener(const std::function<void(const Packet&)>& listener)
-    {
-        printf("SerialHandler::add_listener()\n");
-        comm->mutex_lock();
-        printf("Locked mutex\n");
-        if (this->listeners[T::id]) {
-            comm->mutex_unlock();
-            return false;
+        auto packet = get_packet();
+        if (packet.has_value()) {
+            return packet->get_data<T>();
         }
-        this->listeners[T::id] = listener;
-        comm->mutex_unlock();
-        printf("Unlocked mutex\n");
-        return true;
+        return std::nullopt;
     }
 
-    /**
-     * Removes a listener from the list.
-     * @Returns True if the listener was removed, or false if no listener exits with that id.
-     */
-    template <std::derived_from<Packet> T>
-    bool remove_listener()
-    {
-        comm->mutex_lock();
-        if (this->listeners[T::id])
-        {
-            this->listeners[T::id] = nullptr; // Put the function in an empty state
-            comm->mutex_unlock();
-            return true;
-        }
-        comm->mutex_unlock();
-        return false;
-    }
+    std::optional<Packet> get_packet();
+
 private:
-    void decode_packet(const unsigned char* packet_end);
-
-    /** An array where the indices of the array correspond to the packet id whose listener is stored there */
-    std::array<std::function<void(const Packet&)>, PacketIds::LENGTH> listeners;
+    std::optional<Packet> decode_packet(const unsigned char* packet_end);
 
     /** An array of bytes that stores the data from receiving packets. Used temporarily between calls to libusb_block_transfer when receiving
      * This buffer needs to be large enough to store (MAX_ENCODED_PACKET_SIZE - 1) bytes + the amount of bytes being read in each IO call.
@@ -110,7 +66,4 @@ private:
     unsigned char buffer[MAX_ENCODED_PACKET_SIZE - 1 + MAX_LIBUSB_PACKET_SIZE]{};
     /** The index in the buffer array where the next read data should be placed. */
     size_t next_write_index = 0;
-
-    /** An array where the indices of the array correspond to the packet id whose buffer is stored there */
-    std::array<Buffer, PacketIds::LENGTH> buffers;
 };
