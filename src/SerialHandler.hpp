@@ -37,23 +37,19 @@ public:
      */
     void send(const Packet& packet);
 
-    /**
-     * Blocking call that reads a single packet.
-     * If the packet has listeners registered to it, they will execute before this function returns.
-     * Note: It is possible that a packet fails to decode after being read, this function will return
-     * regardless of the success of decoding.
-     */
+    /** Blocking call that requests a packet from the aux device, and waits for a response, and then returns the data. */
     template <std::derived_from<Packet> T>
     std::optional<typename T::Data> get_packet_data() {
-
-        auto packet = get_packet();
-        if (packet.has_value()) {
+        this->send(Packet{Header{T::id, true}, nullptr, 0});
+        auto packet = this->receive_packet();
+        if (packet.has_value() && packet->get_id() == T::id) {
             return packet->get_data<T>();
         }
         return std::nullopt;
     }
 
-    std::optional<Packet> get_packet();
+    /** Blocking call that reads a single packet. */
+    std::optional<Packet> receive_packet();
 
 private:
     std::optional<Packet> decode_packet(const unsigned char* packet_end);

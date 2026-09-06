@@ -4,6 +4,8 @@
 #include <expected>
 #include <iostream>
 
+#include "PacketIds.hpp"
+
 // TODO: To be safe, sent packets should begin with a null byte to end the previous data, in the case tha theres unknown
 // data
 // before it. It also couldn't hurt to add a small set of signature bytes to prefix a packet, to prevent junk data
@@ -22,7 +24,7 @@ void SerialHandler::send(const Packet& packet) {
     comm->write(encoded->data(), encoded->size());
 }
 
-std::optional<Packet> SerialHandler::get_packet() {
+std::optional<Packet> SerialHandler::receive_packet() {
     // Get a pointer to the first null byte in the buffer
     auto it = std::ranges::find(this->buffer, '\0');
     while (it == std::ranges::end(this->buffer) // If a null byte is not found in the buffer

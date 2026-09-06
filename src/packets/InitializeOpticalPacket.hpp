@@ -7,5 +7,5 @@ class InitializeOpticalPacket : public Packet {
 public:
     static constexpr uint8_t id = PacketIds::INITIALIZE_OPTICAL;
 
-    InitializeOpticalPacket() : Packet(Header{id}, nullptr, 0) {};
+    InitializeOpticalPacket() : Packet(Header{id, false}, nullptr, 0) {};
 };
