@@ -57,13 +57,13 @@ TEST_F(PacketTest, ConstructingFromBytes) {
     std::memcpy(bytes.data() + sizeof(std::float64_t), &y, sizeof(std::float64_t));
     std::memcpy(bytes.data() + sizeof(std::float64_t) * 2, &heading, sizeof(std::float64_t));
     // construct using the constructor that takes bytes and a length
-    const Packet packet{Header{PacketIds::OPTICAL}, bytes.data(), bytes.size()};
+    const Packet packet{Header{PacketIds::OPTICAL, false}, bytes.data(), bytes.size()};
     test_optical_packet(packet);
 }
 
 // test constructing from the data struct, the normal way packets are constructed from their derived classes
 TEST_F(PacketTest, ConstructingFromDataStruct) {
     const OpticalPacket::Data data{OPTICAL_TEST_DATA.x, OPTICAL_TEST_DATA.y, OPTICAL_TEST_DATA.heading};
-    const Packet packet{Header{PacketIds::OPTICAL}, data};
+    const Packet packet{Header{PacketIds::OPTICAL, false}, data};
     test_optical_packet(packet);
 }

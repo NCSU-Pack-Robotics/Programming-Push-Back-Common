@@ -27,10 +27,7 @@ target_link_libraries(  # Link tests with source files and test framework
         Programming_Push_Back_Common_lib
         GTest::gtest_main
         GTest::gmock
-        ${LIBUSB_LIBRARIES}
 )
-
-target_include_directories(${TestSuite} PRIVATE ${LIBUSB_INCLUDE_DIRS})
 
 include(GoogleTest)
 gtest_discover_tests(${TestSuite} DISCOVERY_MODE PRE_TEST)
