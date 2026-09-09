@@ -13,5 +13,5 @@ public:
         std::array<char, SerialHandler::MAX_PACKET_DATA_SIZE> text;
     };
 
-    TextPacket(const std::array<char, SerialHandler::MAX_PACKET_DATA_SIZE>& arr) : Packet(Header{id}, Data{arr}) {};
+    TextPacket(const std::array<char, SerialHandler::MAX_PACKET_DATA_SIZE>& arr) : Packet(Header{id, false}, Data{arr}) {};
 };

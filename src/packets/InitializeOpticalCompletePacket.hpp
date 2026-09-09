@@ -7,5 +7,5 @@ class InitializeOpticalCompletePacket : public Packet {
 public:
     static constexpr uint8_t id = PacketIds::INITIALIZE_OPTICAL_COMPLETE;
 
-    InitializeOpticalCompletePacket() : Packet(Header{id}, nullptr, 0) {};
+    InitializeOpticalCompletePacket() : Packet(Header{id, false}, nullptr, 0) {};
 };

@@ -44,12 +44,12 @@ public:
     std::vector<uint8_t> serialize() const;
 
     uint8_t get_id() const;
+    bool is_request() const;
 
     /**
      * @returns The data from the packet. The packet must have data or this will not compile.
      */
-    template <typename T>
-    requires std::derived_from<T, Packet>
+    template <std::derived_from<Packet> T>
     T::Data get_data() const {
         std::array<uint8_t, sizeof(typename T::Data)> bytes;
         memcpy(&bytes, this->data.data(), sizeof(typename T::Data));

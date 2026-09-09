@@ -2,6 +2,7 @@
 #include <stdfloat>
 
 #include "Packet.hpp"
+#include "PacketIds.hpp"
 
 /**
  * A packet containing data from the optical sensor.
@@ -17,5 +18,5 @@ public:
         std::float64_t heading;
     };
 
-    OpticalPacket(std::float64_t x, std::float64_t y, std::float64_t heading) : Packet(Header{id}, Data{x, y, heading}) {};
+    OpticalPacket(std::float64_t x, std::float64_t y, std::float64_t heading) : Packet(Header{id, false}, Data{x, y, heading}) {};
 };

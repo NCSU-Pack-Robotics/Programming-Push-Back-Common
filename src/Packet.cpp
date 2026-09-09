@@ -10,16 +10,22 @@ Packet::Packet(Header header, const uint8_t* data, size_t length) : data(length)
 }
 
 std::vector<uint8_t> Packet::serialize() const {
+    size_t total_size = header.is_request() ? sizeof(Header) : sizeof(Header) + this->data.size();
     // Create enough space to store the entire packet
-    std::vector<uint8_t> data_to_send(sizeof(Header) + this->data.size());
+    std::vector<uint8_t> data_to_send(total_size);
 
     // Copy header and data into the byte array
     memcpy(data_to_send.data(), &this->header, sizeof(Header));
-    memcpy(data_to_send.data() + sizeof(Header), this->data.data(), this->data.size());
+    if (!header.is_request())
+        memcpy(data_to_send.data() + sizeof(Header), this->data.data(), this->data.size());
 
     return data_to_send;
 }
 
 uint8_t Packet::get_id() const {
     return this->header.packet_id;
+}
+
+bool Packet::is_request() const {
+    return this->header.is_request();
 }
