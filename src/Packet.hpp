@@ -44,6 +44,7 @@ public:
     std::vector<uint8_t> serialize() const;
 
     uint8_t get_id() const;
+    bool is_request() const;
 
     /**
      * @returns The data from the packet. The packet must have data or this will not compile.

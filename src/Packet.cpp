@@ -23,3 +23,7 @@ std::vector<uint8_t> Packet::serialize() const {
 uint8_t Packet::get_id() const {
     return this->header.packet_id;
 }
+
+bool Packet::is_request() const {
+    return this->header.is_request();
+}
